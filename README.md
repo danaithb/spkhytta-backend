@@ -1,1 +1,1 @@
-# spkhytta-backend
+# hyttebooker-app
