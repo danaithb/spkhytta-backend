@@ -14,6 +14,7 @@ import lombok.Setter;
 public class Users {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //auto_incremnt for userid
     @Column(nullable = false, unique = true)
     private Integer userId;
 
