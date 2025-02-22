@@ -7,3 +7,5 @@
 /.idea/vcs.xml
 /.idea/workspace.xml
 src/main/resources/firebase-adminsdk.json
+.idea/
+.DS_Store
