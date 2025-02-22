@@ -58,4 +58,5 @@ maven-wrapper.properties
 src/main/resources/firebase-adminsdk.json
 
 /application.properties
-src/main/resources/application.properties
+src/main/resources/application.properties.DS_Store
+.idea/
