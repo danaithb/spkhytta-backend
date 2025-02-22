@@ -15,8 +15,13 @@ public class UserService {
     public UserService(UserRepository usersRepository) {
         this.userRepository = usersRepository;
     }
+
     public Optional<Users> getUserByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public Optional<Users> getUserByFirebaseUid(String firebaseUid) {
+        return userRepository.findByFirebaseUid(firebaseUid);
     }
 
 
