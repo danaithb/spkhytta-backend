@@ -3,6 +3,9 @@ package com.bookingapp.cabin.backend.controller;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.repository.UserRepository;
 import com.bookingapp.cabin.backend.service.UserService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,7 @@ import java.util.Optional;
 
 public class UserController {
     private final UserService userService;
+
 
     @Autowired
     public UserController(UserService userService) {
@@ -32,6 +36,4 @@ public class UserController {
             return ResponseEntity.status(404).body("Bruker ikke funnet");
         }
     }
-
-
 }
