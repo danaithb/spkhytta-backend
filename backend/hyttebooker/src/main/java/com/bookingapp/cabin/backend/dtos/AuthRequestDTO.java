@@ -12,7 +12,5 @@ import lombok.Setter;
 @AllArgsConstructor
 @Data
 public class AuthRequestDTO {
-    private String email;
-    private String password;
-
+    private String firebaseToken;
 }
