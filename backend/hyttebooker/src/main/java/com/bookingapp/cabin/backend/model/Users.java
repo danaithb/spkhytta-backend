@@ -27,8 +27,4 @@ public class Users {
     @Column(nullable = false, unique = true)
     private String email;
 
-
-    //passordet må lagres som hash
-    @Column(nullable = false)
-    private String password;
 }
