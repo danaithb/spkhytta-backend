@@ -25,7 +25,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequestDTO AuthRequest) {
         try {
-            String customToken = authService.authenticateUser(AuthRequest.getEmail(), AuthRequest.getPassword());
+            // Sender Firebase-tokenet til AuthService for verifisering
+            String customToken = authService.authenticateUser(AuthRequest.getFirebaseToken());
             return ResponseEntity.ok(new AuthResponseDTO(customToken));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(e.getMessage());
