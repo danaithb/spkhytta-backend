@@ -20,22 +20,6 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    /*// Brukeren autentiseres via Firebase, og backend gir et custom token til frontend
-    public String authenticateUser(String firebaseToken) {
-        try {
-            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
-            String firebaseUid = decodedToken.getUid();
-            String email = decodedToken.getEmail();
-
-            Users user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
-
-            return FirebaseAuth.getInstance().createCustomToken(firebaseUid);
-        } catch (FirebaseAuthException e) {
-            throw new RuntimeException("Kunne ikke autentisere", e);
-        }
-    }*/
-
     public String authenticateUser(String firebaseToken) throws Exception {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
@@ -53,7 +37,7 @@ public class AuthService {
                 user.setFirebaseUid(firebaseUid);
                 userRepository.save(user);
             } else if (!user.getFirebaseUid().equals(firebaseUid)) {
-                throw new RuntimeException("Feil Firebase UID – kontoen er ikke registrert med denne innloggingen.");
+                throw new RuntimeException("Feil Firebase UID");
             }
 
             return FirebaseAuth.getInstance().createCustomToken(firebaseUid);
