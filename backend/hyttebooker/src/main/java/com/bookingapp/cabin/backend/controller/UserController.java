@@ -25,7 +25,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    //henter en bruker fra db basert på email
     @GetMapping("/{email}")
     public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
         Optional<Users> user = userService.getUserByEmail(email);
