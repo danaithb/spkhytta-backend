@@ -1,6 +1,7 @@
 package com.bookingapp.cabin.backend.controller;
 
 import com.bookingapp.cabin.backend.service.AuthService;
+import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,13 +24,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequestDTO AuthRequest) {
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO authRequest) {
         try {
-            // Sender Firebase-tokenet til AuthService for verifisering
-            String customToken = authService.authenticateUser(AuthRequest.getFirebaseToken());
-            return ResponseEntity.ok(new AuthResponseDTO(customToken));
+            String firebaseUid = authService.authenticateUser(authRequest.getFirebaseToken());
+            return ResponseEntity.ok(new AuthResponseDTO(firebaseUid));
+        } catch (FirebaseAuthException e) {
+            return ResponseEntity.status(401).body("Ugyldig Firebase-token");
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 }
