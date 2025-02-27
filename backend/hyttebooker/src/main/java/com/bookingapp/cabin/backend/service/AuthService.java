@@ -8,6 +8,8 @@ import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
 
@@ -18,7 +20,7 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    // Brukeren autentiseres via Firebase, og backend gir et custom token til frontend
+    /*// Brukeren autentiseres via Firebase, og backend gir et custom token til frontend
     public String authenticateUser(String firebaseToken) {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
@@ -32,5 +34,36 @@ public class AuthService {
         } catch (FirebaseAuthException e) {
             throw new RuntimeException("Kunne ikke autentisere", e);
         }
+    }*/
+
+    public String authenticateUser(String firebaseToken) throws Exception {
+        try {
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
+            String firebaseUid = decodedToken.getUid();
+            String email = decodedToken.getEmail();
+
+            Optional<Users> existingUser = userRepository.findByEmail(email);
+
+            if (existingUser.isEmpty()) {
+                throw new RuntimeException("Bruker ikke funnet");
+            }
+            Users user = existingUser.get();
+
+            if (user.getFirebaseUid() == null || user.getFirebaseUid().isEmpty()) {
+                user.setFirebaseUid(firebaseUid);
+                userRepository.save(user);
+            } else if (!user.getFirebaseUid().equals(firebaseUid)) {
+                throw new RuntimeException("Feil Firebase UID – kontoen er ikke registrert med denne innloggingen.");
+            }
+
+            return FirebaseAuth.getInstance().createCustomToken(firebaseUid);
+        } catch (FirebaseAuthException e) {
+            throw new RuntimeException("Kunne ikke autentisere", e);
+        }
     }
+
 }
+
+
+
+
