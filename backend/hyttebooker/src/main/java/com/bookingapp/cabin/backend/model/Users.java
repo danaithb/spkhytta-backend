@@ -21,7 +21,7 @@ public class Users {
     @Column(nullable = false, unique = true)
     private String firebaseUid;
 
-    @Column(nullable = false)
+   @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
