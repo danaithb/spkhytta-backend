@@ -9,15 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 //source:https://stackoverflow.com/questions/44185432/firebase-admin-sdk-with-java/47247539#47247539
 
-import javax.annotation.PostConstruct;
-
 @Configuration
 public class FirebaseConfig {
 
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
-        if (FirebaseApp.getApps().isEmpty()) {
-            try (InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json")) {
+        if (FirebaseApp.getApps().isEmpty()){
+            try(InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json")) {
                 if (serviceAccount == null) {
                     throw new IOException("Kunne ikke finne firebase-adminsdk.json.");
                 }
@@ -30,10 +28,5 @@ public class FirebaseConfig {
             }
         }
         return FirebaseApp.getInstance();
-    }
-
-    @PostConstruct
-    public void checkFirebase() {
-        System.out.println("Firebase is initialized with app name: " + FirebaseApp.getInstance().getName());
     }
 }
