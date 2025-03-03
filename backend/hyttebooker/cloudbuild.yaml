@@ -1,9 +1,9 @@
 steps:
   # Bygg Docker-image
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '--platform=linux/amd64', '-t', 'gcr.io/spk-hytta/hyttebooking-backend:$COMMIT_SHA', '-f', 'backend/hyttebooker/Dockerfile', '.']
+    args: [ 'build', '--platform=linux/amd64', '-t', 'gcr.io/spk-hytta/hyttebooking-backend:$COMMIT_SHA', '-f', 'backend/hyttebooker/Dockerfile', 'backend/hyttebooker' ]
 
-      # Push image til Container Registry
+    # Push image til Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/spk-hytta/hyttebooking-backend:$COMMIT_SHA']
 
