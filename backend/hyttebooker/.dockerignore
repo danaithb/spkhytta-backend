@@ -1,3 +1,7 @@
-target/
-.idea/
-*.iml
+**/target/
+**/.mvn/
+**/.gitignore
+**/.idea/
+**/*.iml
+**/Dockerfile
+**/docker-compose.yml
