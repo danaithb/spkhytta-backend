@@ -1,15 +1,13 @@
-FROM eclipse-temurin:21-jdk-jammy AS builder
+# Første stage: Bygg med Maven (JDK 21)
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
-RUN ./mvnw clean package -DskipTests
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-jammy
+# Andre stage: Kjør appen (JDK 21)
+FROM openjdk:21-jdk-slim
 WORKDIR /app
-COPY --from=builder /app/backend/hyttebooker/target/*.jar app.jar
-
-# Eksplisitt sett PORT variabel
-ENV PORT=8080
-EXPOSE $PORT
-
-# Øk timeout til 300s (5 minutter)
-CMD ["java", "-jar", "-Dspring.main.lazy-initialization=true", "-Dserver.tomcat.connection-timeout=300000", "app.jar"]
+COPY --from=build /app/target/*.jar app.jar
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]
