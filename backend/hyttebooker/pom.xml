@@ -26,11 +26,6 @@
 		<tag/>
 		<url/>
 	</scm>
-	<properties>
-		<mysql.url>${env.DB_URL}</mysql.url>
-		<mysql.user>${env.DB_USER}</mysql.user>
-		<mysql.password>${env.DB_PASSWORD}</mysql.password>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -87,6 +82,12 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-secretmanager</artifactId>
+			<version>2.59.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -122,9 +123,9 @@
 				<artifactId>flyway-maven-plugin</artifactId>
 				<version>10.20.1</version>
 				<configuration>
-					<url>${mysql.url}</url>
-					<user>${mysql.user}</user>
-					<password>${mysql.password}</password>
+					<url>${DB_URL}</url>
+					<user>${DB_USER}</user>
+					<password>${DB_PASSWORD}</password>
 					<baselineOnMigrate>true</baselineOnMigrate>
 					<locations>classpath:db/migration</locations>
 				</configuration>
