@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<mysql.url>jdbc:mysql://34.38.201.231:3306/BookingDB?serverTimezone=UTC</mysql.url>
+		<mysql.user>app_booking_user</mysql.user>
+		<mysql.password>Booking4321!</mysql.password>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -113,6 +116,20 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.flywaydb</groupId>
+				<artifactId>flyway-maven-plugin</artifactId>
+				<version>10.20.1</version>
+				<configuration>
+					<url>${mysql.url}</url>
+					<user>${mysql.user}</user>
+					<password>${mysql.password}</password>
+					<baselineOnMigrate>true</baselineOnMigrate>
+					<locations>classpath:db/migration</locations>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
