@@ -8,4 +8,19 @@
 /.idea/workspace.xml
 src/main/resources/firebase-adminsdk.json
 .idea/
+
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# local variables files
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+
+
 .DS_Store
