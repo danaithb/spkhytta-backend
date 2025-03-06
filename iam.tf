@@ -21,7 +21,7 @@ resource "google_iam_workload_identity_pool" "github" {
   ]
 
   project                   = local.project_id
-  workload_identity_pool_id = "github-actions"
+  workload_identity_pool_id = "github-actions-new"
   display_name              = "GitHub Actions"
 }
 
@@ -71,7 +71,7 @@ resource "google_service_account_iam_binding" "iam-workloadIdentityUser" {
   role               = "roles/iam.workloadIdentityUser"
 
   members = [
-    "principalSet://iam.googleapis.com/projects/${local.project_number}/locations/global/workloadIdentityPools/github-actions/attribute.repository/${local.github_repo}"
+    "principalSet://iam.googleapis.com/projects/${local.project_number}/locations/global/workloadIdentityPools/github-actions-new/attribute.repository/${local.github_repo}"
   ]
 
   depends_on = [
