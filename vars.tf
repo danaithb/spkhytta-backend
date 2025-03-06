@@ -21,5 +21,5 @@ variable "public_bucket_name" {
 
 variable "default_run_image" {
   type    = string
-  default = "nginx:latest"
+  default = "hyttebooker-app-backend"
 }
