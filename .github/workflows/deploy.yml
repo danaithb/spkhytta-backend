@@ -1,18 +1,22 @@
 name: Build and Deploy to Cloud Run
+
 on:
   push:
     branches: [ "main" ]
+
 env:
   APP_NAME: 'hyttebooker-app-backend'
   PROJECT_ID: 'spk-hytta'
   PROJECT_NMR: 508319635743
   REGION: 'europe-west1'
   REGISTRY_NAME: 'run-image'
+
 jobs:
   deploy:
     permissions:
       contents: 'read'
       id-token: 'write'
+
     runs-on: ubuntu-latest
     steps:
       - id: 'Checkout'
@@ -21,9 +25,16 @@ jobs:
       - id: 'auth'
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/${{env.PROJECT_NMR}}/locations/global/workloadIdentityPools/github-actions-new/providers/github-provider'
+          workload_identity_provider: 'projects/${{env.PROJECT_NMR}}/locations/global/workloadIdentityPools/github-actions/providers/github-provider'
           service_account: 'github-wif@${{env.PROJECT_ID}}.iam.gserviceaccount.com'
           project_id: ${{env.PROJECT_ID}}
+
+      - id: 'upload-folder'
+        uses: 'google-github-actions/upload-cloud-storage@v2'
+        with:
+          path: './src'
+          destination: '${{env.PROJECT_ID}}-static-content'
+          parent: false
 
       - id: 'build-api-image'
         run: |-
@@ -37,5 +48,5 @@ jobs:
           gcloud run deploy $APP_NAME \
           --region $REGION \
           --image $REGION-docker.pkg.dev/$PROJECT_ID/$REGISTRY_NAME/$APP_NAME:$GITHUB_SHA \
-          --service-account=cloudrun-sa@$PROJECT_ID.iam.gserviceaccount.com \
-          --set-env-vars "SPRING_APPLICATION_NAME=${{ secrets.SPRING_APPLICATION_NAME }},DB_URL=${{ secrets.DB_URL }},DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},SPRING_DATASOURCE_DRIVER_CLASS_NAME=${{ secrets.SPRING_DATASOURCE_DRIVER_CLASS_NAME }},SPRING_FLYWAY_ENABLED=${{ secrets.SPRING_FLYWAY_ENABLED }},SPRING_FLYWAY_LOCATIONS=${{ secrets.SPRING_FLYWAY_LOCATIONS }},SPRING_FLYWAY_BASELINE_ON_MIGRATE=${{ secrets.SPRING_FLYWAY_BASELINE_ON_MIGRATE }}"
+          --service-account=cloudrun-sa@$PROJECT_ID.iam.gserviceaccount.com
+

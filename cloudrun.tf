@@ -21,7 +21,7 @@ resource "google_cloud_run_service" "apis" {
     google_project_service.gcp_services
   ]
 
-  name = "hyttebooker-app-backend"
+  name = "apis"
 
   project  = var.project_id
   location = var.project_default_region
