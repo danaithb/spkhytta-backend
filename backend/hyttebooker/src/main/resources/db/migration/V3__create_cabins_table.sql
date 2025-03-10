@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS cabins (
+cabin_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+cabin_name VARCHAR(255) NOT NULL,
+location VARCHAR(255),
+capacity INT NOT NULL,
+description TEXT
+);
