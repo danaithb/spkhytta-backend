@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS bookings (
+booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+user_id BIGINT NOT NULL,
+cabin_id BIGINT NOT NULL,
+start_date DATE NOT NULL,
+end_date DATE NOT NULL,
+status VARCHAR(50) NOT NULL DEFAULT 'pending',
+queue_position INT DEFAULT NULL,
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+FOREIGN KEY (cabin_id) REFERENCES cabins(cabin_id) ON DELETE CASCADE
+);
