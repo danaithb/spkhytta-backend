@@ -1,5 +1,11 @@
-INSERT INTO users (firebase_uid, name, email) VALUES
-   ('E5bvqkbg7tQOEsIff1MPm6AuIpi2', 'Anni Testing', 'annitesting@gmail.com'),
-   ('3CjCcXEweZWkVVbhL90S1i1sqw43', 'Testing 4', 'testing4@test.no'),
-   ('abR09ojPWpgFXmEwRMR27ojBGgw2', 'Test 6', 'test6@test.no'),
-   ('FyTHHlS7FUeZmfaOH66dU4quKLi2', 'Test 5', 'test5@test.no');
+INSERT INTO users (name, email, firebase_uid)
+SELECT 'testuser4', 'testing4@test.no', ''
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'testing4@test.no'
+);
+
+INSERT INTO users (name, email, firebase_uid)
+SELECT 'anni', 'annitesting@gmail.com', ''
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'annitesting@gmail.com'
+);
