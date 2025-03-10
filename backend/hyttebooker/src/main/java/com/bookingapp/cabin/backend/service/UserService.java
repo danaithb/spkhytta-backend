@@ -5,6 +5,7 @@ import com.bookingapp.cabin.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 @Service
 public class UserService {
@@ -14,6 +15,10 @@ public class UserService {
     @Autowired
     public UserService(UserRepository usersRepository) {
         this.userRepository = usersRepository;
+    }
+
+    public List<Users> getAllUsers() {
+        return userRepository.findAll();
     }
 
     public Optional<Users> getUserByEmail(String email) {
