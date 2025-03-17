@@ -1,4 +1,4 @@
-/*package com.bookingapp.cabin.backend.config;
+package com.bookingapp.cabin.backend.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
@@ -11,10 +11,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+// Henter Firebase-nøkkelen fra Google Secret Manager i stedet for å lagre den som en fil
+
 @Configuration
 public class FirebaseConfig {
 
-    private static final String GCP_PROJECT_ID = "spk-hytta";
+    private static final String GCP_PROJECT_ID = "test2-hyttebooker";
     private static final String SECRET_ID = "firebase-admin-key";
 
     @Bean
@@ -39,4 +41,4 @@ public class FirebaseConfig {
             return response.getPayload().getData().toStringUtf8();
         }
     }
-} test*/
+}
