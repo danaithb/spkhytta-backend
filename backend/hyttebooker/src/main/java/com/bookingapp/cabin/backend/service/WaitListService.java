@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-//denne klassen er fikset
+
 @Service
 public class WaitListService {
     private static final Logger logger = LoggerFactory.getLogger(WaitListService.class);
