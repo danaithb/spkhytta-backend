@@ -1,10 +1,14 @@
 package com.bookingapp.cabin.backend.service;
 
+import com.bookingapp.cabin.backend.globalException.BadRequestException;
+import com.bookingapp.cabin.backend.globalException.ResourceNotFoundException;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +17,7 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserRepository userRepository;
 
     @Autowired
@@ -20,34 +25,29 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String authenticateUser(String firebaseToken) throws Exception {
+    public Users authenticateUser(String firebaseToken) throws BadRequestException, ResourceNotFoundException {
         try {
+            // 1. Valider Firebase-token
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
-            String firebaseUid = decodedToken.getUid();
             String email = decodedToken.getEmail();
+            logger.info("Forsøker å autentisere bruker: {}", email);
 
-            Optional<Users> existingUser = userRepository.findByEmail(email);
+            // 2. Hent bruker fra database
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("Bruker ikke funnet: " + email));
 
-            if (existingUser.isEmpty()) {
-                throw new RuntimeException("Bruker ikke funnet");
-            }
-            Users user = existingUser.get();
-
-            if (user.getFirebaseUid() == null || user.getFirebaseUid().isEmpty()) {
-                user.setFirebaseUid(firebaseUid);
+            // 3. Oppdater Firebase UID hvis den mangler (valgfritt)
+            if (user.getFirebaseUid() == null) {
+                user.setFirebaseUid(decodedToken.getUid());
                 userRepository.save(user);
-            } else if (!user.getFirebaseUid().equals(firebaseUid)) {
-                throw new RuntimeException("Feil Firebase UID");
+                logger.info("Oppdatert Firebase UID for bruker: {}", email);
             }
 
-            return FirebaseAuth.getInstance().createCustomToken(firebaseUid);
+            return user;
+
         } catch (FirebaseAuthException e) {
-            throw new RuntimeException("Kunne ikke autentisere", e);
+            logger.error("Firebase-validering feilet: {}", e.getMessage());
+            throw new BadRequestException("Ugyldig Firebase-token: " + e.getMessage());
         }
     }
-
 }
-
-
-
-
