@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import java.util.List;
 
-//Denne klassen er fikset
 @RestController
 @RequestMapping("/api/bookings")
 public class BookingController {
@@ -42,12 +41,6 @@ public class BookingController {
                     bookingRequest.getEndDate()
             );
 
-            /*Long cabinId = ((Number) bookingRequest.get("cabinId")).longValue();
-            LocalDate startDate = LocalDate.parse((String) bookingRequest.get("startDate"));
-            LocalDate endDate = LocalDate.parse((String) bookingRequest.get("endDate"));
-
-            Booking newBooking = bookingService.createBooking(userId, cabinId, startDate, endDate);
-            return ResponseEntity.ok(newBooking);*/
             return ResponseEntity.ok(newBooking);
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Kunne ikke opprette booking: " + e.getMessage());
@@ -57,7 +50,6 @@ public class BookingController {
     //Hente alle bookinger
     @GetMapping
     public ResponseEntity<List<Booking>> getAllBookings() {
-        //List<Booking> bookings = bookingService.getAllBookings();
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
     //prossess for å booke en spesifik hytte
@@ -65,9 +57,6 @@ public class BookingController {
     public ResponseEntity<?> processBookings(@PathVariable Long cabinId,
                                              @RequestBody BookingRequestDTO bookingRequest) {
         try {
-            /*LocalDate startDate = LocalDate.parse(requestBody.get("startDate"));
-            LocalDate endDate = LocalDate.parse(requestBody.get("endDate"));*/
-
             bookingService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
             return ResponseEntity.ok("Bookinger prosessert for hytte " + cabinId);
         } catch (Exception e) {
