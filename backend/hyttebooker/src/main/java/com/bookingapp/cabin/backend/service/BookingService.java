@@ -74,7 +74,6 @@ public class BookingService {
             return;
         }
 
-        Booking selectedBooking = bookingLotteryService.conductLottery(pendingBookings);
         Booking selectedBooking = bookingLotteryService.conductLottery(overlappingBookings);
         if (selectedBooking == null) {
             logger.info("Ingen booking ble valgt i loddtrekningen for hytte {}", cabinId);
