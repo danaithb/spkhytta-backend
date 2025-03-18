@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.List;
 
-//denne klassen er fikset
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
