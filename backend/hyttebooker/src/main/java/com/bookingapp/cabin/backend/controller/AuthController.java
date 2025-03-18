@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bookingapp.cabin.backend.dtos.AuthRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AuthResponseDTO;
 
-//Denne klassen er fikset
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
