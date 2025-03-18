@@ -13,12 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bookingapp.cabin.backend.dtos.AuthRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AuthResponseDTO;
 
+//Denne klassen er fikset
 @RestController
 @RequestMapping("/api/auth")
-
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
     private final AuthService authService;
 
     @Autowired
@@ -33,9 +32,6 @@ public class AuthController {
             String firebaseUid = authService.authenticateUser(authRequest.getFirebaseToken());
             logger.info("Innlogging vellykket for bruker: {}", firebaseUid);
             return ResponseEntity.ok(new AuthResponseDTO(firebaseUid));
-        } catch (FirebaseAuthException e) {
-            logger.error("Feil: Ugyldig Firebase-token", e);
-            return ResponseEntity.status(401).body("Ugyldig Firebase-token");
         } catch (RuntimeException e) {
             logger.error("Innloggingsfeil: {}", e.getMessage());
             return ResponseEntity.status(400).body(e.getMessage());
