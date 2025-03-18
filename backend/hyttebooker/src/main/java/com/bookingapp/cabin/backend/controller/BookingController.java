@@ -7,60 +7,77 @@ import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
+import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import java.util.List;
-import java.util.Map;
 
+//Denne klassen er fikset
 @RestController
 @RequestMapping("/api/bookings")
 public class BookingController {
 
-    @Autowired
-    private BookingService bookingService;
+    private final BookingService bookingService;
 
-    @PostMapping("/create")
+    @Autowired
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
+
+    //oppretter en booking
+    @PostMapping
     public ResponseEntity<?> createBooking(@RequestHeader("Authorization") String firebaseToken,
-                                           @RequestBody Map<String, Object> bookingRequest) {
+                                           @RequestBody BookingRequestDTO bookingRequest) {
         try {
             String idToken = firebaseToken.replace("Bearer ", "");
-
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-            String firebaseUid = decodedToken.getUid();
+            Long userId = bookingService.getUserIdByFirebaseUid(decodedToken.getUid());
 
-            Long userId = bookingService.getUserIdByFirebaseUid(firebaseUid);
             if (userId == null) {
                 return ResponseEntity.status(404).body("Bruker ikke funnet i databasen");
             }
 
-            Long cabinId = ((Number) bookingRequest.get("cabinId")).longValue();
+            Booking newBooking = bookingService.createBooking(
+                    userId,
+                    bookingRequest.getCabinId(),
+                    bookingRequest.getStartDate(),
+                    bookingRequest.getEndDate()
+            );
+
+            /*Long cabinId = ((Number) bookingRequest.get("cabinId")).longValue();
             LocalDate startDate = LocalDate.parse((String) bookingRequest.get("startDate"));
             LocalDate endDate = LocalDate.parse((String) bookingRequest.get("endDate"));
 
             Booking newBooking = bookingService.createBooking(userId, cabinId, startDate, endDate);
+            return ResponseEntity.ok(newBooking);*/
             return ResponseEntity.ok(newBooking);
-
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Kunne ikke opprette booking: " + e.getMessage());
         }
     }
 
+    //Hente alle bookinger
+    @GetMapping
+    public ResponseEntity<List<Booking>> getAllBookings() {
+        //List<Booking> bookings = bookingService.getAllBookings();
+        return ResponseEntity.ok(bookingService.getAllBookings());
+    }
+    //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
-    public ResponseEntity<?> processBookings(@PathVariable Long cabinId) {
+    public ResponseEntity<?> processBookings(@PathVariable Long cabinId,
+                                             @RequestBody BookingRequestDTO bookingRequest) {
         try {
-            bookingService.processBookings(cabinId, LocalDate.now());
+            /*LocalDate startDate = LocalDate.parse(requestBody.get("startDate"));
+            LocalDate endDate = LocalDate.parse(requestBody.get("endDate"));*/
+
+            bookingService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
             return ResponseEntity.ok("Bookinger prosessert for hytte " + cabinId);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Feil ved prosessering av bookinger: " + e.getMessage());
         }
     }
-    @GetMapping("/all")
-    public ResponseEntity<List<Booking>> getAllBookings() {
-        List<Booking> bookings = bookingService.getAllBookings();
-        return ResponseEntity.ok(bookings);
-    }
 
-    @PostMapping("/cancel/{bookingId}")
+
+    //Kansellerer en booking
+    @DeleteMapping("/{bookingId}")
     public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
         try {
             bookingService.cancelBooking(bookingId);
