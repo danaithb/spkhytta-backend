@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
+//denne klassen er fikset
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
@@ -22,7 +21,7 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String authenticateUser(String firebaseToken) throws Exception {
+    public String authenticateUser(String firebaseToken) {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
             String firebaseUid = decodedToken.getUid();
@@ -31,14 +30,8 @@ public class AuthService {
             logger.info("Firebase UID: {}", firebaseUid);
             logger.info("Bruker-email: {}", email);
 
-            Optional<Users> existingUser = userRepository.findByEmail(email);
-
-            if (existingUser.isEmpty()) {
-                logger.error("Bruker ikke funnet i databasen: {}", email);
-                throw new RuntimeException("Bruker ikke funnet");
-            }
-
-            Users user = existingUser.get();
+            Users user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
             if (user.getFirebaseUid() == null || user.getFirebaseUid().isEmpty()) {
                 logger.info("Setter Firebase UID for {}", email);
