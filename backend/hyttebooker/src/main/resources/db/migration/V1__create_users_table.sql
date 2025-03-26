@@ -1,6 +1,6 @@
-create table if not exists users (
-    user_id int auto_increment primary key,
-    email varchar(255) unique not null,
-    name varchar(255),
-    firebase_uid VARCHAR(255) UNIQUE
+CREATE TABLE users (
+  user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  firebase_uid VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE
 );
