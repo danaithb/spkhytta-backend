@@ -4,11 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
-
+@AllArgsConstructor
 public class AuthResponseDTO {
-    private String token;
-
+    private Integer userId;
+    private String firebaseUid;
+    private String name;
+    private String email;
 }
