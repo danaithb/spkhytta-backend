@@ -22,14 +22,25 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            // Hent hemmeligheten fra GCP Secret Manager
-            String secretPayload = getSecret();
-            try (InputStream serviceAccount = new ByteArrayInputStream(secretPayload.getBytes())) {
-                FirebaseOptions options = new FirebaseOptions.Builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                        .build();
-                return FirebaseApp.initializeApp(options);
+            InputStream serviceAccount;
+
+            if (System.getenv("GOOGLE_CLOUD_PROJECT") != null) {
+                // Kjører i GCP – bruk Secret Manager
+                String secretPayload = getSecret();
+                serviceAccount = new ByteArrayInputStream(secretPayload.getBytes());
+            } else {
+                // Kjører lokalt – bruk lokal JSON-nøkkel
+                serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json");
+                if (serviceAccount == null) {
+                    throw new IOException("firebase-adminsdk.json not found in resources.");
+                }
             }
+
+            FirebaseOptions options = new FirebaseOptions.Builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            return FirebaseApp.initializeApp(options);
         }
         return FirebaseApp.getInstance();
     }
