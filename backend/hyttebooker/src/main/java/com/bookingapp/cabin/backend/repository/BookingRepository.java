@@ -15,4 +15,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
             Long cabinId, String status, LocalDate endDate, LocalDate startDate);
 
+
+
 }
