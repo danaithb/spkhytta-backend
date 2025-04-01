@@ -45,14 +45,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.flywaydb</groupId>
-			<artifactId>flyway-mysql</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>com.google.firebase</groupId>
@@ -120,19 +112,6 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.flywaydb</groupId>
-				<artifactId>flyway-maven-plugin</artifactId>
-				<version>10.20.1</version>
-				<configuration>
-					<url>${DB_URL}</url>
-					<user>${DB_USER}</user>
-					<password>${DB_PASSWORD}</password>
-					<baselineOnMigrate>true</baselineOnMigrate>
-					<locations>classpath:db/migration</locations>
 				</configuration>
 			</plugin>
 
