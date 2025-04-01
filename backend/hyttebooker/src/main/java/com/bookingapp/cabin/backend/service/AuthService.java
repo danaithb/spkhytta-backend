@@ -20,7 +20,7 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public String authenticateUser(String firebaseToken) {
+    public Users authenticateUser(String firebaseToken) {
         try {
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(firebaseToken);
             String firebaseUid = decodedToken.getUid();
@@ -41,7 +41,7 @@ public class AuthService {
                 throw new RuntimeException("Feil Firebase UID");
             }
 
-            return firebaseUid;
+            return user;
         } catch (FirebaseAuthException e) {
             logger.error("Kunne ikke autentisere bruker: {}", e.getMessage());
             throw new RuntimeException("Kunne ikke autentisere", e);
