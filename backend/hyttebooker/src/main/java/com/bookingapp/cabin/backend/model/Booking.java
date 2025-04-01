@@ -36,8 +36,12 @@ public class Booking {
     @Column(name = "queue_position")
     private Integer queuePosition;
 
-
+    @Column(name = "status")
     private String status;
+
+    @Column(name = "price")
+    private double price;
+
 
     public Booking(Users user, Cabin cabin, LocalDate startDate, LocalDate endDate, String status) {
         this.user = user;
@@ -45,6 +49,7 @@ public class Booking {
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.price = 0.0;
         this.queuePosition = null;
     }
 
