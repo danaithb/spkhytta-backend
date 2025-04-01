@@ -47,11 +47,12 @@ public class BookingController {
         }
     }
 
-    //Hente alle bookinger
+   /* //Hente alle bookinger
     @GetMapping
     public ResponseEntity<List<Booking>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
-    }
+    }*/
+
     //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
     public ResponseEntity<?> processBookings(@PathVariable Long cabinId,
