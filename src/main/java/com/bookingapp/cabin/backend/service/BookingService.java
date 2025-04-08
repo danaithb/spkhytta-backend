@@ -50,6 +50,11 @@ public class BookingService {
         return bookingRepository.findAll();
     }
 
+    //hente bruker sine bookinger
+    public List<Booking> getBookingsByUserId(Long userId) {
+        return bookingRepository.findByUser_UserId(userId);
+    }
+
     //Oppretter en ny booking
     public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate) {
         Users user = userRepository.findById(userId)
