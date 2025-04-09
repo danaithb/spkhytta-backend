@@ -53,6 +53,26 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }*/
 
+    //hente bruker sine bookinger
+    @GetMapping("/mine")
+    public ResponseEntity<?> getMyBookings(@RequestHeader("Authorization") String firebaseToken) {
+        try {
+            String idToken = firebaseToken.replace("Bearer ", "");
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+            Long userId = bookingService.getUserIdByFirebaseUid(decodedToken.getUid());
+
+            if (userId == null) {
+                return ResponseEntity.status(404).body("Bruker ikke funnet i databasen");
+            }
+
+            List<Booking> myBookings = bookingService.getBookingsByUserId(userId);
+            return ResponseEntity.ok(myBookings);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Kunne ikke hente bookinger: " + e.getMessage());
+        }
+    }
+
+
     //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
     public ResponseEntity<?> processBookings(@PathVariable Long cabinId,

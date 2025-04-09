@@ -32,7 +32,7 @@ public class AuthService {
             Users user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
-            if (user.getFirebaseUid() == null || user.getFirebaseUid().isEmpty()) {
+            if (user.getFirebaseUid() == null || user.getFirebaseUid().isBlank()) {
                 logger.info("Setter Firebase UID for {}", email);
                 user.setFirebaseUid(firebaseUid);
                 userRepository.save(user);
