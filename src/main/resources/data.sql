@@ -2,7 +2,8 @@ CREATE TABLE if not exists users (
 user_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 firebase_uid VARCHAR(255) UNIQUE,
 name VARCHAR(255) NOT NULL,
-email VARCHAR(255) NOT NULL UNIQUE
+email VARCHAR(255) NOT NULL UNIQUE,
+points INT NOT NULL DEFAULT 12
 );
 
 
@@ -48,6 +49,18 @@ end_date DATE NOT NULL,
 status VARCHAR(50) NOT NULL DEFAULT 'pending',
 queue_position INT DEFAULT NULL,
 price DECIMAL(10,2) NOT NULL,
+booking_created_date DATETIME,
+rest_booking BOOLEAN NOT NULL DEFAULT FALSE,
+booking_code VARCHAR(255) UNIQUE,
+number_of_guests INT NOT NULL DEFAULT 1,
+points_required INT NOT NULL DEFAULT 0,
+points_deducted INT NOT NULL DEFAULT 0,
+points_before INT NOT NULL DEFAULT 0,
+points_after INT NOT NULL DEFAULT 0,
 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (cabin_id) REFERENCES cabins(cabin_id) ON DELETE CASCADE
 );
+
+
+
+
