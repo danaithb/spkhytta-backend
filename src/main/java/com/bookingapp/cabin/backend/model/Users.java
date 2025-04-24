@@ -18,7 +18,7 @@ public class Users {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "firebase_uid", nullable = false, unique = true)
     private String firebaseUid;
 
    @Column(nullable = false)
@@ -26,5 +26,9 @@ public class Users {
 
     @Column(nullable = false, unique = true)
     private String email;
+
+    //12 poeng hvert år
+    @Column(nullable = false)
+    private int points = 12;
 
 }

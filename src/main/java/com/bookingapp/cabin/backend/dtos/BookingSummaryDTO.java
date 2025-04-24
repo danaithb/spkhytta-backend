@@ -1,18 +1,19 @@
 package com.bookingapp.cabin.backend.dtos;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
-@AllArgsConstructor
+
 @Getter
 @Setter
+@AllArgsConstructor
 
-public class BookingRequestDTO {
-    private Long cabinId;
+public class BookingSummaryDTO {
+    private String bookingCode;
+    private String cabinName;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int numberOfGuests;
-
+    private String status;
 }

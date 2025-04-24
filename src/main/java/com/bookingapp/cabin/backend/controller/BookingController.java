@@ -1,6 +1,8 @@
 package com.bookingapp.cabin.backend.controller;
 
 import com.bookingapp.cabin.backend.model.Booking;
+import com.bookingapp.cabin.backend.model.Users;
+import com.bookingapp.cabin.backend.service.AuthService;
 import com.bookingapp.cabin.backend.service.BookingService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
@@ -15,10 +17,12 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final AuthService authService;
 
     @Autowired
-    public BookingController(BookingService bookingService) {
+    public BookingController(BookingService bookingService, AuthService authService) {
         this.bookingService = bookingService;
+        this.authService = authService;
     }
 
     //oppretter en booking
@@ -38,7 +42,8 @@ public class BookingController {
                     userId,
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
-                    bookingRequest.getEndDate()
+                    bookingRequest.getEndDate(),
+                    bookingRequest.getNumberOfGuests()
             );
 
             return ResponseEntity.ok(newBooking);
@@ -47,7 +52,7 @@ public class BookingController {
         }
     }
 
-   /* //Hente alle bookinger
+    /*//Hente alle bookinger
     @GetMapping
     public ResponseEntity<List<Booking>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
@@ -85,15 +90,4 @@ public class BookingController {
         }
     }
 
-
-    //Kansellerer en booking
-    @DeleteMapping("/{bookingId}")
-    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
-        try {
-            bookingService.cancelBooking(bookingId);
-            return ResponseEntity.ok("Booking kansellert: " + bookingId);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Feil ved kansellering av booking: " + e.getMessage());
-        }
-    }
 }

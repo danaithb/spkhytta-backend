@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -56,15 +58,59 @@ public class BookingService {
     }
 
     //Oppretter en ny booking
-    public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate) {
+    public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
         Cabin cabin = cabinRepository.findById(cabinId)
                 .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
+        int totalCost = calculateBookingCost(startDate, endDate);
+        int userPointsBefore = user.getPoints();
+        boolean isRestBooking = LocalDate.now().isAfter(startDate.minusWeeks(1));
+
+        if (!isRestBooking && user.getPoints() < totalCost) {
+            throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
+        }
+
+        if (!isRestBooking) {
+            Booking lastBooking = bookingRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(userId, "confirmed");
+            if (lastBooking != null) {
+                LocalDate requiredDate = lastBooking.getEndDate().plusDays(60);
+                if (startDate.isBefore(requiredDate)) {
+                    throw new RuntimeException("Må vente 60 dager etter forrige booking pga karantenetid");
+                }
+            }
+        }
+
         Booking booking = new Booking(user, cabin, startDate, endDate, "pending");
+        booking.setBookingCreatedDate(LocalDateTime.now());
+        booking.setRestBooking(isRestBooking);
+        booking.setNumberOfGuests(numberOfGuests);
+
+        booking.setPointsBefore(userPointsBefore);
+        booking.setPointsRequired(totalCost);
+        booking.setPointsDeducted(0);
+        booking.setPointsAfter(userPointsBefore);
+
+        //lager unik bookingcode
+        String code = "BOOKING-" + System.currentTimeMillis();
+        booking.setBookingCode(code);
+
         return bookingRepository.save(booking);
+    }
+
+    private int calculateBookingCost(LocalDate startDate, LocalDate endDate) {
+        int cost = 0;
+        for (LocalDate date = startDate; date.isBefore(endDate); date = date.plusDays(1)) {
+            DayOfWeek day = date.getDayOfWeek();
+            if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+                cost += 4;
+            } else {
+                cost += 2;
+            }
+        }
+        return cost;
     }
 
     // Behandler bookinger for en hytte og velger en vinner via loddtrekning
@@ -86,6 +132,25 @@ public class BookingService {
 
         selectedBooking.setStatus("confirmed");
         selectedBooking.setQueuePosition(null);
+
+        if (!selectedBooking.isRestBooking()) {
+            Users user = selectedBooking.getUser();
+            int cost = selectedBooking.getPointsRequired();
+            int before = user.getPoints();
+            int after = before - cost;
+
+            user.setPoints(after);
+            userRepository.save(user);
+
+            selectedBooking.setPointsDeducted(cost);
+            selectedBooking.setPointsBefore(before);
+            selectedBooking.setPointsAfter(after);
+            logger.info("Trekk {} poeng fra bruker {} (ny saldo: {})",
+                    cost, user.getEmail(), user.getPoints());
+        } else {
+            logger.info("Restbooking – poeng trekkes ikke for booking ID {}", selectedBooking.getBookingId());
+        }
+
         bookingRepository.save(selectedBooking);
         logger.info("Booking ID {} vant loddtrekningen!", selectedBooking.getBookingId());
 
@@ -101,18 +166,6 @@ public class BookingService {
         logger.info("Ventelisten er oppdatert for hytte {}", cabinId);
     }
 
-    //Kansellerer en booking og hånterer ventelisten
-    public void cancelBooking(Long bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (!booking.getStatus().equals("confirmed")) {
-            return;
-        }
 
-        booking.setStatus("canceled");
-        bookingRepository.save(booking);
-
-        waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
-    }
 }
