@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @AllArgsConstructor
@@ -40,7 +41,38 @@ public class Booking {
     private String status;
 
     @Column(name = "price")
-    private double price;
+    private Double price;
+
+    @Column(name = "booking_created_date")
+    private LocalDateTime bookingCreatedDate;
+
+
+    @Column(name = "points_before")
+    private int pointsBefore;
+
+    @Column(name = "points_after")
+    private int pointsAfter;
+
+    @Column(name = "points_required")
+    private int pointsRequired;
+
+    @Column(name = "points_deducted")
+    private int pointsDeducted;
+
+
+    //restedager
+    @Column(name = "rest_booking")
+    private boolean restBooking;
+
+    @Column(name = "number_of_guests", nullable = false)
+    private int numberOfGuests;
+
+    //referansenummer for bookingen
+    @Column(name = "booking_code", unique = true)
+    private String bookingCode;
+
+
+
 
 
     public Booking(Users user, Cabin cabin, LocalDate startDate, LocalDate endDate, String status) {
