@@ -1,10 +1,12 @@
 package com.bookingapp.cabin.backend.controller;
 
+import com.bookingapp.cabin.backend.dtos.AuthRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AuthResponseDTO;
 import com.bookingapp.cabin.backend.globalException.BadRequestException;
 import com.bookingapp.cabin.backend.globalException.ResourceNotFoundException;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.service.AuthService;
+import com.google.firebase.auth.FirebaseAuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +26,11 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestHeader("Authorization") String firebaseTokenHeader) {
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO authRequest) {
         try {
             logger.info("Bruker prøver å logge inn med Firebase-token...");
 
-            // Fjern "Bearer " fra headeren
-            String firebaseToken = firebaseTokenHeader.replace("Bearer ", "");
-
-            Users user = authService.authenticateUser(firebaseToken);
+            Users user = authService.authenticateUser(authRequest.getFirebaseToken());
 
             logger.info("Innlogging vellykket for bruker: {}", user.getFirebaseUid());
 
