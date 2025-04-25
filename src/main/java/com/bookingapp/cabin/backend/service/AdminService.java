@@ -1,21 +1,34 @@
 package com.bookingapp.cabin.backend.service;
 
 import com.bookingapp.cabin.backend.model.Booking;
+import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.repository.AdminRepository;
+import com.bookingapp.cabin.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AdminService {
 
     private final AdminRepository adminRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    public AdminService(AdminRepository adminRepository) {
+    public AdminService(AdminRepository adminRepository, UserRepository userRepository) {
         this.adminRepository = adminRepository;
+        this.userRepository = userRepository;
+    }
+
+    public List<Users> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public Optional<Users> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public List<Booking> getAllBookings() {
@@ -51,4 +64,5 @@ public class AdminService {
         Booking booking = getBookingById(bookingId);
         adminRepository.delete(booking);
     }
+
 }
