@@ -31,21 +31,6 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    //Hent alle brukere - må flyttes til admin
-   /* @GetMapping
-    public ResponseEntity<List<Users>> getAllUsers() {
-        //List<Users> users = userService.getAllUsers();
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
-
-    //Hent en bruker baser på email - må flyttes til admin
-    @GetMapping("/{email}")
-    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
-        return userService.getUserByEmail(email)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(404).body("Bruker ikke funnet"));
-    }*/
-
     @GetMapping("/my-bookings")
     public ResponseEntity<List<Booking>> getMyBookings(@RequestHeader("Authorization") String authorizationHeader) {
         String idToken = authorizationHeader.replace("Bearer ", "");
@@ -85,20 +70,6 @@ public class UserController {
         return ResponseEntity.ok(summaries);
     }
 
-    //Kansellerer min booking
-    @DeleteMapping("/me/bookings/{bookingId}")
-    public ResponseEntity<?> cancelOwnBooking(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable Long bookingId) {
-        try {
-            String idToken = authorizationHeader.replace("Bearer ", "");
-            Users user = authService.authenticateUser(idToken);
 
-            userService.cancelMyBooking(bookingId, user.getFirebaseUid());
-            return ResponseEntity.ok("Booking kansellert: " + bookingId);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Feil ved kansellering av booking: " + e.getMessage());
-        }
-    }
 
 }
