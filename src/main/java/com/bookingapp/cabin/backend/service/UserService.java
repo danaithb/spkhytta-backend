@@ -28,20 +28,6 @@ public class UserService {
         this.waitListService = waitListService;
     }
 
-    /*//Henter alle brukere
-    public List<Users> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    //Henter en bruker basert på email
-    public Optional<Users> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }*/
-
-    /* //Henter en bruker basert på firebase uid
-    public Optional<Users> getUserByFirebaseUid(String firebaseUid) {
-        return userRepository.findByFirebaseUid(firebaseUid);
-    }*/
 
     public List<BookingSummaryDTO> getMyBookingSummaries(String firebaseUid) {
         List<Booking> bookings = bookingRepository.findByUser_FirebaseUidOrderByStartDateDesc(firebaseUid);
@@ -60,37 +46,7 @@ public class UserService {
         return bookingRepository.findByUser_FirebaseUidOrderByStartDateDesc(firebaseUid);
     }
 
-    //Kansellerer en booking og hånterer ventelisten
-    public void cancelMyBooking(Long bookingId, String firebaseUid) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (!booking.getUser().getFirebaseUid().equals(firebaseUid)) {
-            throw new RuntimeException("Du kan kun kansellere dine egne bookinger");
-        }
-
-        if (!booking.getStatus().equals("confirmed")) {
-            return;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        long daysSinceBooking = java.time.Duration.between(booking.getBookingCreatedDate(), now).toDays();
-
-        if (daysSinceBooking <= 7) {
-            if (!booking.isRestBooking()) {
-                Users user = booking.getUser();
-                int refund = booking.getPointsDeducted();
-                user.setPoints(user.getPoints() + refund);
-                userRepository.save(user);
-            }
-        } else {
-            logger.info("Kansellering for sent; poeng blir ikke refundert, og bruker må betale avgift.");
-        }
-
-        booking.setStatus("canceled");
-        bookingRepository.save(booking);
-        waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
-    }
 }
 
 
