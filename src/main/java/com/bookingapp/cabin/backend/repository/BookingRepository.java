@@ -16,7 +16,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Long cabinId, String status, LocalDate endDate, LocalDate startDate);
     List<Booking> findByUser_UserId(Long userId);
 
-
+    Booking findTopByUser_UserIdAndStatusOrderByEndDateDesc(Long userId, String status);
+    List<Booking> findByUser_FirebaseUidOrderByStartDateDesc(String firebaseUid);
 
 
 }
