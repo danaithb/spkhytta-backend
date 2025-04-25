@@ -1,6 +1,5 @@
 package com.bookingapp.cabin.backend.controller;
 
-import com.bookingapp.cabin.backend.dtos.AuthRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AuthResponseDTO;
 import com.bookingapp.cabin.backend.globalException.BadRequestException;
 import com.bookingapp.cabin.backend.globalException.ResourceNotFoundException;
@@ -26,11 +25,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequestDTO authRequest) {
+    public ResponseEntity<?> login(@RequestHeader("Authorization") String firebaseTokenHeader) {
         try {
             logger.info("Bruker prøver å logge inn med Firebase-token...");
 
-            Users user = authService.authenticateUser(authRequest.getFirebaseToken());
+            // Fjern "Bearer " fra headeren
+            String firebaseToken = firebaseTokenHeader.replace("Bearer ", "");
+
+            Users user = authService.authenticateUser(firebaseToken);
 
             logger.info("Innlogging vellykket for bruker: {}", user.getFirebaseUid());
 
