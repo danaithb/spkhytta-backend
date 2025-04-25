@@ -14,14 +14,12 @@ import org.slf4j.LoggerFactory;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final CabinRepository cabinRepository;
-    private final BookingLotteryService bookingLotteryService;
     private final WaitListService waitListService;
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
@@ -30,31 +28,20 @@ public class BookingService {
             BookingRepository bookingRepository,
             UserRepository userRepository,
             CabinRepository cabinRepository,
-            BookingLotteryService bookingLotteryService,
             WaitListService waitListService
     ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.cabinRepository = cabinRepository;
-        this.bookingLotteryService = bookingLotteryService;
         this.waitListService = waitListService;
     }
 
+    //skal vi ha denne????
     //Henter bruker-id fra Firebase uid
     public Long getUserIdByFirebaseUid(String firebaseUid) {
         return userRepository.findByFirebaseUid(firebaseUid)
                 .map(Users::getUserId)
                 .orElse(null);
-    }
-
-    //Henter alle bookinger
-    public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
-    }
-
-    //hente bruker sine bookinger
-    public List<Booking> getBookingsByUserId(Long userId) {
-        return bookingRepository.findByUser_UserId(userId);
     }
 
     //Oppretter en ny booking
@@ -113,59 +100,36 @@ public class BookingService {
         return cost;
     }
 
-    // Behandler bookinger for en hytte og velger en vinner via loddtrekning
-    public void processBookings(Long cabinId, LocalDate startDate, LocalDate endDate) {
-        List<Booking> overlappingBookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                cabinId, "pending", endDate, startDate
-        );
+    //Kansellerer en booking og hånterer ventelisten
+    public void cancelMyBooking(Long bookingId, String firebaseUid) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
 
-        if (overlappingBookings.isEmpty()) {
-            logger.info("Ingen pending bookinger funnet for hytte " + cabinId);
+        if (!booking.getUser().getFirebaseUid().equals(firebaseUid)) {
+            throw new RuntimeException("Du kan kun kansellere dine egne bookinger");
+        }
+
+        if (!booking.getStatus().equals("confirmed")) {
             return;
         }
 
-        Booking selectedBooking = bookingLotteryService.conductLottery(overlappingBookings);
-        if (selectedBooking == null) {
-            logger.info("Ingen booking ble valgt i loddtrekningen for hytte {}", cabinId);
-            return;
-        }
+        LocalDateTime now = LocalDateTime.now();
+        long daysSinceBooking = java.time.Duration.between(booking.getBookingCreatedDate(), now).toDays();
 
-        selectedBooking.setStatus("confirmed");
-        selectedBooking.setQueuePosition(null);
-
-        if (!selectedBooking.isRestBooking()) {
-            Users user = selectedBooking.getUser();
-            int cost = selectedBooking.getPointsRequired();
-            int before = user.getPoints();
-            int after = before - cost;
-
-            user.setPoints(after);
-            userRepository.save(user);
-
-            selectedBooking.setPointsDeducted(cost);
-            selectedBooking.setPointsBefore(before);
-            selectedBooking.setPointsAfter(after);
-            logger.info("Trekk {} poeng fra bruker {} (ny saldo: {})",
-                    cost, user.getEmail(), user.getPoints());
-        } else {
-            logger.info("Restbooking – poeng trekkes ikke for booking ID {}", selectedBooking.getBookingId());
-        }
-
-        bookingRepository.save(selectedBooking);
-        logger.info("Booking ID {} vant loddtrekningen!", selectedBooking.getBookingId());
-
-        int queuePosition = 1;
-        for (Booking booking : overlappingBookings) {
-            if (!booking.getBookingId().equals(selectedBooking.getBookingId())) {
-                booking.setStatus("waitlist");
-                booking.setQueuePosition(queuePosition++);
-                bookingRepository.save(booking);
-                logger.info("Booking ID {} er satt til venteliste med køposisjon {}", booking.getBookingId(), booking.getQueuePosition());
+        if (daysSinceBooking <= 7) {
+            if (!booking.isRestBooking()) {
+                Users user = booking.getUser();
+                int refund = booking.getPointsDeducted();
+                user.setPoints(user.getPoints() + refund);
+                userRepository.save(user);
             }
+        } else {
+            logger.info("Kansellering for sent; poeng blir ikke refundert, og bruker må betale avgift.");
         }
-        logger.info("Ventelisten er oppdatert for hytte {}", cabinId);
+
+        booking.setStatus("canceled");
+        bookingRepository.save(booking);
+        waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
     }
-
-
 
 }
