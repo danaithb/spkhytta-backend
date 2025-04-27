@@ -23,5 +23,11 @@ public class Cabin {
     @Column(name = "cabin_name")
     private String cabinName;
 
+
+    public Cabin(Long cabinId) {
+        this.cabinId = cabinId;
+    }
+
+
 }
 
