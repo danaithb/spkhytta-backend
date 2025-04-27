@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @Getter
@@ -12,7 +13,8 @@ public class AdminBookingRequestDTO {
     private String status;
     private LocalDate startDate;
     private LocalDate endDate;
-    private double price;
+    private BigDecimal price;
     private Integer queuePosition;
+    private String guestName;
 }
 
