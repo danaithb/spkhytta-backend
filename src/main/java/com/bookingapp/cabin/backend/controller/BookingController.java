@@ -116,7 +116,7 @@ public class BookingController {
             if (!available) {
                 return ResponseEntity.status(400).body("Hytta er opptatt i denne perioden");
             }
-            
+
             bookingService.createAndConfirmBooking(
                     userId,
                     bookingRequest.getCabinId(),
