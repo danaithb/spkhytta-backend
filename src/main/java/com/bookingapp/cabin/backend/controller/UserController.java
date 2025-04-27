@@ -69,6 +69,6 @@ public class UserController {
         List<BookingSummaryDTO> summaries = userService.getMyBookingSummaries(user.getFirebaseUid());
         return ResponseEntity.ok(summaries);
     }
-    // må legge til en metode for kvittering før booking er bekreftet
+
 }
 
