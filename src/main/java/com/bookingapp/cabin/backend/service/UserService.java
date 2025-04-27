@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -37,7 +38,8 @@ public class UserService {
                 booking.getCabin().getCabinName(),
                 booking.getStartDate(),
                 booking.getEndDate(),
-                booking.getStatus()
+                booking.getStatus(),
+                booking.getPrice()
         )).toList();
     }
 
