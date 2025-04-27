@@ -48,25 +48,35 @@ public class BookingController {
                     bookingRequest.getNumberOfGuests()
             );
 
-            return ResponseEntity.ok(newBooking);
+            return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Kunne ikke opprette booking: " + e.getMessage());
         }
     }
 
-    //prossess for å booke en spesifik hytte
-    @PostMapping("/process/{cabinId}")
-    public ResponseEntity<?> processBookings(@PathVariable Long cabinId,
-                                             @RequestBody BookingRequestDTO bookingRequest) {
+
+    //legge til metode for å endre en booking
+    @PutMapping("/update-guests/{bookingId}")
+    public ResponseEntity<?> updateGuestCount(@RequestHeader("Authorization") String firebaseToken,
+                                              @PathVariable Long bookingId,
+                                              @RequestParam int newGuestCount) {
         try {
-            bookingLotteryService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
-            return ResponseEntity.ok("Bookinger prosessert for hytte " + cabinId);
+            String idToken = firebaseToken.replace("Bearer ", "");
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+
+            Booking updatedBooking = bookingService.updateGuestCount(
+                    bookingId,
+                    decodedToken.getUid(),
+                    newGuestCount
+            );
+
+            return ResponseEntity.ok(updatedBooking);
+
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Feil ved prosessering av bookinger: " + e.getMessage());
+            return ResponseEntity.status(400).body("Kunne ikke oppdatere antall gjester: " + e.getMessage());
         }
     }
 
-    //legge til metode for å endre en booking
 
 
     //Kansellerer min booking
@@ -84,5 +94,43 @@ public class BookingController {
             return ResponseEntity.status(500).body("Feil ved kansellering av booking: " + e.getMessage());
         }
     }
+
+    @PostMapping("/instant-booking")
+    public ResponseEntity<?> instantBooking(@RequestHeader("Authorization") String firebaseToken,
+                                            @RequestBody BookingRequestDTO bookingRequest) {
+        try {
+            String idToken = firebaseToken.replace("Bearer ", "");
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
+            Long userId = bookingService.getUserIdByFirebaseUid(decodedToken.getUid());
+
+            if (userId == null) {
+                return ResponseEntity.status(404).body("Bruker ikke funnet i databasen");
+            }
+
+            boolean available = bookingService.isCabinAvailable(
+                    bookingRequest.getCabinId(),
+                    bookingRequest.getStartDate(),
+                    bookingRequest.getEndDate()
+            );
+
+            if (!available) {
+                return ResponseEntity.status(400).body("Hytta er opptatt i denne perioden");
+            }
+            
+            bookingService.createAndConfirmBooking(
+                    userId,
+                    bookingRequest.getCabinId(),
+                    bookingRequest.getStartDate(),
+                    bookingRequest.getEndDate(),
+                    bookingRequest.getNumberOfGuests()
+            );
+
+            return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Kunne ikke utføre booking: " + e.getMessage());
+        }
+    }
+
 
 }
