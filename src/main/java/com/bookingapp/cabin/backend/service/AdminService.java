@@ -2,9 +2,12 @@ package com.bookingapp.cabin.backend.service;
 
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.model.Users;
+import com.bookingapp.cabin.backend.model.WaitlistEntry;
 import com.bookingapp.cabin.backend.repository.AdminRepository;
 import com.bookingapp.cabin.backend.repository.BookingRepository;
 import com.bookingapp.cabin.backend.repository.UserRepository;
+import com.bookingapp.cabin.backend.repository.WaitlistEntryRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,14 +26,28 @@ public class AdminService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final BookingLotteryService bookingLotteryService;
+    private final PointsTransactionsService pointsTransactionsService;
+    private final BookingLogService bookingLogService;
+    private final WaitlistEntryRepository waitlistEntryRepository;
 
 
     @Autowired
-    public AdminService(AdminRepository adminRepository, UserRepository userRepository, BookingRepository bookingRepository, BookingLotteryService bookingLotteryService) {
+    public AdminService(
+            AdminRepository adminRepository,
+            UserRepository userRepository,
+            BookingRepository bookingRepository,
+            BookingLotteryService bookingLotteryService,
+            PointsTransactionsService pointsTransactionsService,
+            BookingLogService bookingLogService,
+            WaitlistEntryRepository waitlistEntryRepository
+    ) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.bookingLotteryService = bookingLotteryService;
+        this.pointsTransactionsService = pointsTransactionsService;
+        this.bookingLogService = bookingLogService;
+        this.waitlistEntryRepository = waitlistEntryRepository;
     }
 
     public List<Users> getAllUsers() {
@@ -49,9 +67,10 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
     }
 
-
+    @Transactional
     public void deleteBooking(Long bookingId) {
         Booking booking = getBookingById(bookingId);
+        bookingLogService.recordBookingLog(booking, "deleted", "admin@admin.no");
         adminRepository.delete(booking);
     }
 
@@ -81,7 +100,9 @@ public class AdminService {
             booking.setPrice(price);
         }
 
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        bookingLogService.recordBookingLog(saved, "edited", "admin@admin.no");
+        return saved;
     }
 
     // Behandler bookinger for en hytte og velger en vinner via loddtrekning
@@ -101,27 +122,23 @@ public class AdminService {
             return;
         }
 
-        selectedBooking.setStatus("confirmed");
-        selectedBooking.setQueuePosition(null);
-
-        if (!selectedBooking.isRestBooking()) {
-            Users user = selectedBooking.getUser();
-            int cost = selectedBooking.getPointsRequired();
-            int before = user.getPoints();
-            int after = before - cost;
-
-            user.setPoints(after);
-            userRepository.save(user);
-
-            selectedBooking.setPointsDeducted(cost);
-            selectedBooking.setPointsBefore(before);
-            selectedBooking.setPointsAfter(after);
-            logger.info("Trekk {} poeng fra bruker {} (ny saldo: {})",
-                    cost, user.getEmail(), user.getPoints());
-        } else {
-            logger.info("Restbooking – poeng trekkes ikke for booking ID {}", selectedBooking.getBookingId());
+        Users user = selectedBooking.getUser();
+        int cost = selectedBooking.getPointsRequired();
+        if (user.getPoints() < cost) {
+            logger.info("Du har ikke nok poeng for å utøfre bookingen");
+            selectedBooking.setStatus("rejected_insufficient_points");
+            bookingRepository.save(selectedBooking);
+            return;
         }
 
+        selectedBooking.setStatus("confirmed");
+        bookingRepository.save(selectedBooking);
+
+        selectedBooking.setStatus("confirmed");
+        user.setPoints(user.getPoints() - cost);
+        userRepository.save(user);
+        pointsTransactionsService.recordPointsTransaction(user, -cost, "booking_lottery");
+        bookingLogService.recordBookingLog(selectedBooking, "confirmed_lottery", "admin@admin.no");
         bookingRepository.save(selectedBooking);
         logger.info("Booking ID {} vant loddtrekningen!", selectedBooking.getBookingId());
 
@@ -129,9 +146,14 @@ public class AdminService {
         for (Booking booking : overlappingBookings) {
             if (!booking.getBookingId().equals(selectedBooking.getBookingId())) {
                 booking.setStatus("waitlist");
-                booking.setQueuePosition(queuePosition++);
                 bookingRepository.save(booking);
-                logger.info("Booking ID {} er satt til venteliste med køposisjon {}", booking.getBookingId(), booking.getQueuePosition());
+                bookingLogService.recordBookingLog(booking, "waitlisted", "admin@admin.no");
+                WaitlistEntry entry = new WaitlistEntry();
+                entry.setBooking(booking);
+                entry.setPosition(queuePosition++);
+                entry.setCreatedAt(LocalDateTime.now());
+                waitlistEntryRepository.save(entry);
+
             }
         }
         logger.info("Ventelisten er oppdatert for hytte {}", cabinId);
