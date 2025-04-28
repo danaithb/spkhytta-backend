@@ -1,5 +1,6 @@
 package com.bookingapp.cabin.backend.controller;
 
+import com.bookingapp.cabin.backend.dtos.UpdateGuestsDTO;
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.service.AuthService;
@@ -18,15 +19,15 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final AuthService authService;
-    private final BookingLotteryService bookingLotteryService;
+
 
     @Autowired
     public BookingController(BookingService bookingService, AuthService authService, BookingLotteryService bookingLotteryService) {
         this.bookingService = bookingService;
         this.authService = authService;
-        this.bookingLotteryService = bookingLotteryService;
     }
 
+    //denne funker
     //oppretter en booking
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestHeader("Authorization") String firebaseToken,
@@ -45,7 +46,7 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getNumberOfGuests()
+                    bookingRequest.getGuestCount()
             );
 
             return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
@@ -54,12 +55,14 @@ public class BookingController {
         }
     }
 
-
+//denne funker
     //legge til metode for å endre en booking
     @PutMapping("/update-guests/{bookingId}")
-    public ResponseEntity<?> updateGuestCount(@RequestHeader("Authorization") String firebaseToken,
-                                              @PathVariable Long bookingId,
-                                              @RequestParam int newGuestCount) {
+    public ResponseEntity<?> updateGuestCount(
+            @RequestHeader("Authorization") String firebaseToken,
+            @PathVariable Long bookingId,
+            @RequestBody UpdateGuestsDTO body
+    ){
         try {
             String idToken = firebaseToken.replace("Bearer ", "");
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
@@ -67,7 +70,7 @@ public class BookingController {
             Booking updatedBooking = bookingService.updateGuestCount(
                     bookingId,
                     decodedToken.getUid(),
-                    newGuestCount
+                    body.getNewGuestCount()
             );
 
             return ResponseEntity.ok(updatedBooking);
@@ -78,7 +81,7 @@ public class BookingController {
     }
 
 
-
+    //denne funker
     //Kansellerer min booking
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<?> cancelOwnBooking(
@@ -95,6 +98,7 @@ public class BookingController {
         }
     }
 
+    //denne funker
     @PostMapping("/instant-booking")
     public ResponseEntity<?> instantBooking(@RequestHeader("Authorization") String firebaseToken,
                                             @RequestBody BookingRequestDTO bookingRequest) {
@@ -122,7 +126,7 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getNumberOfGuests()
+                    bookingRequest.getGuestCount()
             );
 
             return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
