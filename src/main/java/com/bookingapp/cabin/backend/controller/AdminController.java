@@ -26,6 +26,7 @@ public class AdminController {
         this.userService = userService;
     }
 
+    //denne funker
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String firebaseToken) {
         if (!isAdminEmail(firebaseToken)) {
@@ -34,6 +35,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
+    //denne funker
     // Hent en bruker basert på email – kun tilgjengelig for admin
     @GetMapping("/{email}")
     public ResponseEntity<?> getUserByEmail(@RequestHeader("Authorization") String firebaseToken,
@@ -47,6 +49,7 @@ public class AdminController {
                 .orElseGet(() -> ResponseEntity.status(404).body("Bruker ikke funnet"));
     }
 
+    //denne funker
     @GetMapping("/bookings")
     public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String firebaseToken) {
         if (!isAdminEmail(firebaseToken)) {
@@ -55,6 +58,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllBookings());
     }
 
+    //denne funker
     @GetMapping("/bookings/{id}")
     public ResponseEntity<?> getBooking(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
         if (!isAdminEmail(firebaseToken)) {
@@ -64,8 +68,10 @@ public class AdminController {
     }
 
 
+    //denne funker
     @DeleteMapping("/bookings/{id}")
-    public ResponseEntity<?> deleteBooking(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
+    public ResponseEntity<?> deleteBooking(
+            @RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
         if (!isAdminEmail(firebaseToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
         }
@@ -73,6 +79,7 @@ public class AdminController {
         return ResponseEntity.ok("Booking slettet: " + id);
     }
 
+    //denne funker
     @PutMapping("/edit-booking/{bookingId}")
     public ResponseEntity<?> editBooking(
             @RequestHeader("Authorization") String firebaseToken,
@@ -98,7 +105,7 @@ public class AdminController {
         }
     }
 
-
+    //denne funker
     //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
     public ResponseEntity<?> processBookings(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long cabinId, @RequestBody BookingRequestDTO bookingRequest) {
