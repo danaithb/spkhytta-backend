@@ -25,19 +25,26 @@ public class BookingService {
     private final CabinRepository cabinRepository;
     private final WaitListService waitListService;
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    private final BookingLogService bookingLogService;
+    private final PointsTransactionsService pointsTransactionsService;
 
     @Autowired
     public BookingService(
             BookingRepository bookingRepository,
             UserRepository userRepository,
             CabinRepository cabinRepository,
-            WaitListService waitListService
+            WaitListService waitListService,
+            BookingLogService bookingLogService,
+            PointsTransactionsService pointsTransactionsService
     ) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.cabinRepository = cabinRepository;
         this.waitListService = waitListService;
+        this.bookingLogService = bookingLogService;
+        this.pointsTransactionsService = pointsTransactionsService;
     }
+
 
     //skal vi ha denne????
     //Henter bruker-id fra Firebase uid
@@ -49,17 +56,24 @@ public class BookingService {
 
     //Oppretter en ny booking
     public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests) {
+        LocalDate today = LocalDate.now();
+        if (startDate.isBefore(today) || endDate.isBefore(today)) {
+            throw new RuntimeException("Du kan ikke booke for datoer som har vært");
+        }
+        if (endDate.isBefore(startDate)) {
+            throw new RuntimeException("Sluttdato må være etter startdato");
+        }
+
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
         Cabin cabin = cabinRepository.findById(cabinId)
                 .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
-        int totalCost = calculateBookingPoints(startDate, endDate);
-        BigDecimal totalPrice = calculateBookingPrice(startDate, endDate);
-        int userPointsBefore = user.getPoints();
+        int pointsCost = calculateBookingPoints(startDate, endDate);
+        BigDecimal price = calculateBookingPrice(startDate, endDate);
 
-        if (userPointsBefore < totalCost) {
+        if (user.getPoints() < pointsCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
 
@@ -74,18 +88,13 @@ public class BookingService {
         Booking booking = new Booking(user, cabin, startDate, endDate, "pending");
         booking.setBookingCreatedDate(LocalDateTime.now());
         booking.setNumberOfGuests(numberOfGuests);
+        booking.setPointsRequired(pointsCost);
+        booking.setPrice(price);
+        booking.setBookingCode("BOOKING-" + System.currentTimeMillis());
 
-        booking.setPointsBefore(userPointsBefore);
-        booking.setPointsRequired(totalCost);
-        booking.setPrice(totalPrice);
-        booking.setPointsDeducted(0);
-        booking.setPointsAfter(userPointsBefore);
-
-        //lager unik bookingcode
-        String code = "BOOKING-" + System.currentTimeMillis();
-        booking.setBookingCode(code);
-
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        bookingLogService.recordBookingLog(saved, "created", user.getFirebaseUid());
+        return saved;
     }
 
     private int calculateBookingPoints(LocalDate startDate, LocalDate endDate) {
@@ -116,24 +125,28 @@ public class BookingService {
         long daysSinceBooking = java.time.Duration.between(booking.getBookingCreatedDate(), now).toDays();
 
         if (daysSinceBooking <= 7) {
-            if (!booking.isRestBooking()) {
                 Users user = booking.getUser();
-                int refund = booking.getPointsDeducted();
+                int refund = booking.getPointsRequired();
                 user.setPoints(user.getPoints() + refund);
                 userRepository.save(user);
-            }
         } else {
             logger.info("Kansellering for sent; poeng blir ikke refundert, og bruker må betale avgift.");
         }
 
         booking.setStatus("canceled");
         bookingRepository.save(booking);
+        bookingLogService.recordBookingLog(booking, "canceled", firebaseUid);
         waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
     }
 
     public Booking updateGuestCount(Long bookingId, String firebaseUid, int newGuestCount) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
+
+        LocalDate today = LocalDate.now();
+        if (booking.getStartDate().isBefore(today)) {
+            throw new RuntimeException("Kan ikke endre antall gjester for bookinger som allerede har startet");
+        }
 
         if (!booking.getUser().getFirebaseUid().equals(firebaseUid)) {
             throw new RuntimeException("Du kan kun endre dine egne bookinger");
@@ -144,7 +157,9 @@ public class BookingService {
         }
 
         booking.setNumberOfGuests(newGuestCount);
-        return bookingRepository.save(booking);
+        Booking updated = bookingRepository.save(booking);
+        bookingLogService.recordBookingLog(updated, "update_guests", firebaseUid);
+        return updated;
     }
 
 
@@ -158,6 +173,13 @@ public class BookingService {
     }
 
     public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests) {
+        LocalDate today = LocalDate.now();
+        if (startDate.isBefore(today) || endDate.isBefore(today)) {
+            throw new RuntimeException("Du kan ikke booke for datoer som har vært");
+        }
+        if (endDate.isBefore(startDate)) {
+            throw new RuntimeException("Sluttdato må være etter startdato");
+        }
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
@@ -167,15 +189,14 @@ public class BookingService {
         int totalCost = calculateBookingPoints(startDate, endDate);
         BigDecimal totalPrice = calculateBookingPrice(startDate, endDate);
 
-        int userPointsBefore = user.getPoints();
-
-        if (userPointsBefore < totalCost) {
+        if (user.getPoints() < totalCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
 
         // Trekk poeng med en gang
-        user.setPoints(userPointsBefore - totalCost);
+        user.setPoints(user.getPoints() - totalCost);
         userRepository.save(user);
+        pointsTransactionsService.recordPointsTransaction(user, -totalCost, "booking");
 
         Booking booking = new Booking();
         booking.setUser(user);
@@ -185,18 +206,13 @@ public class BookingService {
         booking.setNumberOfGuests(numberOfGuests);
         booking.setStatus("confirmed");
         booking.setBookingCreatedDate(LocalDateTime.now());
-
-        booking.setPointsBefore(userPointsBefore);
         booking.setPointsRequired(totalCost);
         booking.setPrice(totalPrice);
-        booking.setPointsDeducted(totalCost);
-        booking.setPointsAfter(user.getPoints());
+        booking.setBookingCode("BOOKING-" + System.currentTimeMillis());
 
-        // Lager unik bookingkode
-        String code = "BOOKING-" + System.currentTimeMillis();
-        booking.setBookingCode(code);
-
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        bookingLogService.recordBookingLog(saved, "confirmed", user.getFirebaseUid());
+        return saved;
     }
 
 
