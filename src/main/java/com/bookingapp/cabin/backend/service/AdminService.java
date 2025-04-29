@@ -29,6 +29,7 @@ public class AdminService {
     private final PointsTransactionsService pointsTransactionsService;
     private final BookingLogService bookingLogService;
     private final WaitlistEntryRepository waitlistEntryRepository;
+    private final BookingService bookingService;
 
 
     @Autowired
@@ -39,7 +40,8 @@ public class AdminService {
             BookingLotteryService bookingLotteryService,
             PointsTransactionsService pointsTransactionsService,
             BookingLogService bookingLogService,
-            WaitlistEntryRepository waitlistEntryRepository
+            WaitlistEntryRepository waitlistEntryRepository,
+            BookingService bookingService
     ) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
@@ -48,6 +50,7 @@ public class AdminService {
         this.pointsTransactionsService = pointsTransactionsService;
         this.bookingLogService = bookingLogService;
         this.waitlistEntryRepository = waitlistEntryRepository;
+        this.bookingService = bookingService;
     }
 
     public List<Users> getAllUsers() {
@@ -105,6 +108,10 @@ public class AdminService {
         return saved;
     }
 
+    public Booking createBookingForUser(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
+        return bookingService.createAndConfirmBooking(userId, cabinId, startDate, endDate, numberOfGuests, businessTrip);
+    }
+
     // Behandler bookinger for en hytte og velger en vinner via loddtrekning
     public void processBookings(Long cabinId, LocalDate startDate, LocalDate endDate) {
         List<Booking> overlappingBookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
@@ -139,6 +146,12 @@ public class AdminService {
         userRepository.save(user);
         pointsTransactionsService.recordPointsTransaction(user, -cost, "booking_lottery");
         bookingLogService.recordBookingLog(selectedBooking, "confirmed_lottery", "admin@admin.no");
+
+        LocalDate quarantineEndDate = selectedBooking.getEndDate().plusDays(60);
+        Users lotteryWinner = selectedBooking.getUser();
+        lotteryWinner.setQuarantineEndDate(quarantineEndDate);
+        userRepository.save(lotteryWinner);
+
         bookingRepository.save(selectedBooking);
         logger.info("Booking ID {} vant loddtrekningen!", selectedBooking.getBookingId());
 
@@ -158,5 +171,8 @@ public class AdminService {
         }
         logger.info("Ventelisten er oppdatert for hytte {}", cabinId);
     }
+
+
+
 
 }
