@@ -2,6 +2,7 @@ package com.bookingapp.cabin.backend.service;
 
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.model.Cabin;
+import com.bookingapp.cabin.backend.model.TripType;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.repository.BookingRepository;
 import com.bookingapp.cabin.backend.repository.UserRepository;
@@ -55,7 +56,7 @@ public class BookingService {
     }
 
     //Oppretter en ny booking
-    public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests) {
+    public Booking createBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
         LocalDate today = LocalDate.now();
         if (startDate.isBefore(today) || endDate.isBefore(today)) {
             throw new RuntimeException("Du kan ikke booke for datoer som har vært");
@@ -67,8 +68,36 @@ public class BookingService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
-        Cabin cabin = cabinRepository.findById(cabinId)
-                .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
+        TripType tripType = Boolean.TRUE.equals(businessTrip)
+                ? TripType.BUSINESS
+                : TripType.PRIVATE;
+
+        boolean available = isCabinAvailable(cabinId, startDate, endDate);
+        if (!available) {
+            throw new RuntimeException("Hytta er opptatt i denne perioden");
+        }
+
+        if (tripType == TripType.BUSINESS) {
+            Cabin cabin = cabinRepository.findById(cabinId)
+                    .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
+
+            Booking businessBooking = new Booking(user, cabin, startDate, endDate, "confirmed");
+            businessBooking.setTripType(tripType);
+            businessBooking.setNumberOfGuests(numberOfGuests);
+            businessBooking.setPointsRequired(0);
+            businessBooking.setPrice(BigDecimal.ZERO);
+            businessBooking.setBookingCreatedDate(LocalDateTime.now());
+            businessBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+
+            Booking savedBusinessBooking = bookingRepository.save(businessBooking);
+            bookingLogService.recordBookingLog(savedBusinessBooking, "confirmed_business", user.getFirebaseUid());
+            return savedBusinessBooking;
+        }
+
+        LocalDate quarantineEnd = user.getQuarantineEndDate();
+        if (quarantineEnd != null && quarantineEnd.isAfter(today)) {
+            throw new RuntimeException("Du er i karantene til " + quarantineEnd);
+        }
 
         int pointsCost = calculateBookingPoints(startDate, endDate);
         BigDecimal price = calculateBookingPrice(startDate, endDate);
@@ -76,6 +105,9 @@ public class BookingService {
         if (user.getPoints() < pointsCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
+
+        Cabin cabin = cabinRepository.findById(cabinId)
+                .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
         Booking lastBooking = bookingRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(userId, "confirmed");
         if (lastBooking != null) {
@@ -85,14 +117,14 @@ public class BookingService {
                 }
             }
 
-        Booking booking = new Booking(user, cabin, startDate, endDate, "pending");
-        booking.setBookingCreatedDate(LocalDateTime.now());
-        booking.setNumberOfGuests(numberOfGuests);
-        booking.setPointsRequired(pointsCost);
-        booking.setPrice(price);
-        booking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+        Booking privateBooking = new Booking(user, cabin, startDate, endDate, "pending");
+        privateBooking.setBookingCreatedDate(LocalDateTime.now());
+        privateBooking.setNumberOfGuests(numberOfGuests);
+        privateBooking.setPointsRequired(pointsCost);
+        privateBooking.setPrice(price);
+        privateBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
 
-        Booking saved = bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(privateBooking);
         bookingLogService.recordBookingLog(saved, "created", user.getFirebaseUid());
         return saved;
     }
@@ -172,7 +204,7 @@ public class BookingService {
         return overlappingBookings.isEmpty();
     }
 
-    public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests) {
+    public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
         LocalDate today = LocalDate.now();
         if (startDate.isBefore(today) || endDate.isBefore(today)) {
             throw new RuntimeException("Du kan ikke booke for datoer som har vært");
@@ -183,36 +215,77 @@ public class BookingService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
-        Cabin cabin = cabinRepository.findById(cabinId)
-                .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
+        TripType tripType = Boolean.TRUE.equals(businessTrip)
+                ? TripType.BUSINESS
+                : TripType.PRIVATE;
+
+        boolean available = isCabinAvailable(cabinId, startDate, endDate);
+        if (!available) {
+            throw new RuntimeException("Hytta er opptatt i denne perioden");
+        }
+
+
+        if (tripType == TripType.BUSINESS) {
+            Cabin cabin = cabinRepository.findById(cabinId)
+                    .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
+
+            Booking businessBooking = new Booking(user, cabin, startDate, endDate, "confirmed");
+            businessBooking.setTripType(TripType.BUSINESS);
+            businessBooking.setNumberOfGuests(numberOfGuests);
+            businessBooking.setPointsRequired(0);
+            businessBooking.setPrice(BigDecimal.ZERO);
+            businessBooking.setBookingCreatedDate(LocalDateTime.now());
+            businessBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+
+            Booking savedBusinessBooking = bookingRepository.save(businessBooking);
+            bookingLogService.recordBookingLog(savedBusinessBooking, "confirmed_business", user.getFirebaseUid());
+            return savedBusinessBooking;
+        }
+
+        LocalDate quarantineEnd = user.getQuarantineEndDate();
+        if (quarantineEnd != null && quarantineEnd.isAfter(today)) {
+            throw new RuntimeException("Du er i karantene til " + quarantineEnd + ". Kan ikke opprette ny booking.");
+        }
 
         int totalCost = calculateBookingPoints(startDate, endDate);
         BigDecimal totalPrice = calculateBookingPrice(startDate, endDate);
-
         if (user.getPoints() < totalCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
 
+
         // Trekk poeng med en gang
+        int userPointsBefore = user.getPoints();
         user.setPoints(user.getPoints() - totalCost);
         userRepository.save(user);
         pointsTransactionsService.recordPointsTransaction(user, -totalCost, "booking");
 
-        Booking booking = new Booking();
-        booking.setUser(user);
-        booking.setCabin(cabin);
-        booking.setStartDate(startDate);
-        booking.setEndDate(endDate);
-        booking.setNumberOfGuests(numberOfGuests);
-        booking.setStatus("confirmed");
-        booking.setBookingCreatedDate(LocalDateTime.now());
-        booking.setPointsRequired(totalCost);
-        booking.setPrice(totalPrice);
-        booking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+        Cabin cabin = cabinRepository.findById(cabinId)
+                .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
-        Booking saved = bookingRepository.save(booking);
-        bookingLogService.recordBookingLog(saved, "confirmed", user.getFirebaseUid());
-        return saved;
+        Booking privateBooking = new Booking();
+        privateBooking.setUser(user);
+        privateBooking.setCabin(cabin);
+        privateBooking.setStartDate(startDate);
+        privateBooking.setEndDate(endDate);
+        privateBooking.setNumberOfGuests(numberOfGuests);
+        privateBooking.setStatus("confirmed");
+        privateBooking.setBookingCreatedDate(LocalDateTime.now());
+        privateBooking.setPointsRequired(totalCost);
+        privateBooking.setPrice(totalPrice);
+        privateBooking.setTripType(TripType.PRIVATE);
+        privateBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+
+        Booking savedBooking = bookingRepository.save(privateBooking);
+        bookingLogService.recordBookingLog(savedBooking, "confirmed_private", user.getFirebaseUid());
+
+        LocalDate quarantineEndDate = savedBooking.getEndDate().plusDays(60);
+        Users bookingUser = savedBooking.getUser();
+        bookingUser.setQuarantineEndDate(quarantineEndDate);
+        userRepository.save(bookingUser);
+
+        return savedBooking;
+
     }
 
 
