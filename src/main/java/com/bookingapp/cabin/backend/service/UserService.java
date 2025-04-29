@@ -1,6 +1,7 @@
 package com.bookingapp.cabin.backend.service;
 
 import com.bookingapp.cabin.backend.dtos.BookingSummaryDTO;
+import com.bookingapp.cabin.backend.dtos.UserInfoDTO;
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.repository.BookingRepository;
@@ -11,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
@@ -29,7 +32,17 @@ public class UserService {
         this.waitListService = waitListService;
     }
 
+    public UserInfoDTO getMyInfo(String firebaseUid) {
+        Users user = userRepository.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
+        return new UserInfoDTO(
+                user.getName(),
+                user.getEmail(),
+                user.getPoints(),
+                user.getQuarantineEndDate()
+        );
+    }
     public List<BookingSummaryDTO> getMyBookingSummaries(String firebaseUid) {
         List<Booking> bookings = bookingRepository.findByUser_FirebaseUidOrderByStartDateDesc(firebaseUid);
 
