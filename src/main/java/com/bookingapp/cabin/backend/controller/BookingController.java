@@ -22,7 +22,7 @@ public class BookingController {
 
 
     @Autowired
-    public BookingController(BookingService bookingService, AuthService authService, BookingLotteryService bookingLotteryService) {
+    public BookingController(BookingService bookingService, AuthService authService) {
         this.bookingService = bookingService;
         this.authService = authService;
     }
@@ -46,7 +46,8 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getGuestCount()
+                    bookingRequest.getGuestCount(),
+                    bookingRequest.isBusinessTrip()
             );
 
             return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
@@ -126,7 +127,8 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getGuestCount()
+                    bookingRequest.getGuestCount(),
+                    bookingRequest.isBusinessTrip()
             );
 
             return ResponseEntity.ok("Takk for bookingen! Sjekk 'Min side' for oppdatert status.");
