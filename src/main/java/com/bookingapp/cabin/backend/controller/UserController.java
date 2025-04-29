@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.bookingapp.cabin.backend.dtos.UserInfoDTO;
-
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
@@ -46,19 +47,10 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserInfoDTO> getMyInfo(@RequestHeader("Authorization") String authorizationHeader) {
         String idToken = authorizationHeader.replace("Bearer ", "");
-        Users user = authService.authenticateUser(idToken);
+        Users authUser = authService.authenticateUser(idToken);
 
-        //henter bruker fra db for å få riktig oppdatert poengsaldo
-        Users dbUser = userRepository.findByFirebaseUid(user.getFirebaseUid())
-                .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
-
-        UserInfoDTO userInfo = new UserInfoDTO(
-                user.getName(),
-                user.getEmail(),
-                user.getPoints()
-        );
-
-        return ResponseEntity.ok(userInfo);
+        UserInfoDTO dto = userService.getMyInfo(authUser.getFirebaseUid());
+        return ResponseEntity.ok(dto);
     }
 
     //denne funker

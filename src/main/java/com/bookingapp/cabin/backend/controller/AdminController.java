@@ -1,5 +1,6 @@
 package com.bookingapp.cabin.backend.controller;
 
+import com.bookingapp.cabin.backend.dtos.AdminCreateBookingDTO;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.service.AdminService;
@@ -79,6 +80,7 @@ public class AdminController {
         return ResponseEntity.ok("Booking slettet: " + id);
     }
 
+    //denne må fikses, denne koden skal være i service, mens controller skal bare vise infoen
     //denne funker
     @PutMapping("/edit-booking/{bookingId}")
     public ResponseEntity<?> editBooking(
@@ -102,6 +104,33 @@ public class AdminController {
             return ResponseEntity.ok(updatedBooking);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Feil ved oppdatering: " + e.getMessage());
+        }
+    }
+
+    //lager bookinger for brukere
+    @PostMapping("/bookings")
+    public ResponseEntity<?> createBookingForUser(
+            @RequestHeader("Authorization") String firebaseToken,
+            @RequestBody AdminCreateBookingDTO request) {
+
+        if (!isAdminEmail(firebaseToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Kun admin har tilgang");
+        }
+
+        try {
+            Booking booking = adminService.createBookingForUser(
+                    request.getUserId(),
+                    request.getCabinId(),
+                    request.getStartDate(),
+                    request.getEndDate(),
+                    request.getNumberOfGuests(),
+                    request.getBusinessTrip()
+            );
+            return ResponseEntity.ok(booking);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Feil ved opprettelse: " + e.getMessage());
         }
     }
 

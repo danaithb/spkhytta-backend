@@ -2,20 +2,20 @@ package com.bookingapp.cabin.backend.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-
-//kanskje legge til userId her
-public class BookingRequestDTO {
+public class AdminCreateBookingDTO {
+    private Long userId;
     private Long cabinId;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int guestCount;
-    private boolean businessTrip;
-
-
+    private int numberOfGuests;
+    private Boolean businessTrip;
 }

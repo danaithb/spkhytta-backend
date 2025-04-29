@@ -60,6 +60,11 @@ public class Booking {
     @Column(name = "booking_code", unique = true)
     private String bookingCode;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trip_type", nullable = false)
+    private TripType tripType;
+
+
 
     public Booking(Users user, Cabin cabin, LocalDate startDate, LocalDate endDate, String status) {
         this.user = user;
