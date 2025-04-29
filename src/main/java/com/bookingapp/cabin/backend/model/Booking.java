@@ -20,6 +20,7 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "booking_id")
     private Long bookingId;
 
     @ManyToOne
@@ -49,22 +50,8 @@ public class Booking {
     private LocalDateTime bookingCreatedDate;
 
 
-    @Column(name = "points_before")
-    private int pointsBefore;
-
-    @Column(name = "points_after")
-    private int pointsAfter;
-
     @Column(name = "points_required")
     private int pointsRequired;
-
-    @Column(name = "points_deducted")
-    private int pointsDeducted;
-
-
-    //restedager
-    @Column(name = "rest_booking")
-    private boolean restBooking;
 
     @Column(name = "number_of_guests", nullable = false)
     private int numberOfGuests;

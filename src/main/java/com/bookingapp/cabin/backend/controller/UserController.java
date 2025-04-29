@@ -31,6 +31,7 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    //denne funker
     @GetMapping("/my-bookings")
     public ResponseEntity<List<Booking>> getMyBookings(@RequestHeader("Authorization") String authorizationHeader) {
         String idToken = authorizationHeader.replace("Bearer ", "");
@@ -40,6 +41,7 @@ public class UserController {
         return ResponseEntity.ok(myBookings);
     }
 
+    //denne funker
     //brukerinformasjon til min side
     @GetMapping("/me")
     public ResponseEntity<UserInfoDTO> getMyInfo(@RequestHeader("Authorization") String authorizationHeader) {
@@ -59,6 +61,7 @@ public class UserController {
         return ResponseEntity.ok(userInfo);
     }
 
+    //denne funker
     //litt usikker på om vi skal bruke summary eller my-bookings
     @GetMapping("/me/bookings/summary")
     public ResponseEntity<List<BookingSummaryDTO>> getMyBookingSummaries(

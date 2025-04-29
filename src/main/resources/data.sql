@@ -40,7 +40,7 @@ WHERE NOT EXISTS (
     SELECT 1 FROM cabins WHERE cabin_name = 'Fjellhytte'
 );
 
-CREATE TABLE IF NOT EXISTS bookings (
+/*CREATE TABLE IF NOT EXISTS bookings (
 booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
 user_id INT NOT NULL,
 cabin_id BIGINT NOT NULL,
@@ -59,7 +59,53 @@ points_before INT NOT NULL DEFAULT 0,
 points_after INT NOT NULL DEFAULT 0,
 FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (cabin_id) REFERENCES cabins(cabin_id) ON DELETE CASCADE
+);*/
+
+
+CREATE TABLE IF NOT EXISTS bookings (
+booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+user_id INT NOT NULL,
+cabin_id BIGINT NOT NULL,
+start_date DATE NOT NULL,
+end_date DATE NOT NULL,
+status VARCHAR(50) NOT NULL DEFAULT 'pending',
+price DECIMAL(10,2) NOT NULL,
+booking_created_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+booking_code VARCHAR(255) UNIQUE,
+number_of_guests INT NOT NULL DEFAULT 1,
+points_required INT NOT NULL DEFAULT 0,
+queue_position INT DEFAULT NULL,
+FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+FOREIGN KEY (cabin_id) REFERENCES cabins(cabin_id) ON DELETE CASCADE
 );
+
+CREATE TABLE waitlist_entries (
+booking_id BIGINT PRIMARY KEY,
+position INT NOT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
+);
+
+CREATE TABLE IF NOT EXISTS points_transactions (
+points_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+user_id INT NOT NULL,
+points_change INT NOT NULL,
+type VARCHAR(50) NOT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS booking_logs (
+booking_log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+booking_id BIGINT NOT NULL,
+action VARCHAR(100) NOT NULL,
+performed_by VARCHAR(100),
+timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
+);
+
+
+
+
 
 
 

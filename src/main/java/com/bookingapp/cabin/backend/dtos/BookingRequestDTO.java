@@ -14,6 +14,6 @@ public class BookingRequestDTO {
     private Long cabinId;
     private LocalDate startDate;
     private LocalDate endDate;
-    private int numberOfGuests;
+    private int guestCount;
 
 }
