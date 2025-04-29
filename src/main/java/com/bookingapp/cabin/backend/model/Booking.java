@@ -22,7 +22,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "booking_id")
     private Long bookingId;
-
+//
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
