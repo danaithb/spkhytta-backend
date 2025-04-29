@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
@@ -30,5 +32,8 @@ public class Users {
     //12 poeng hvert år
     @Column(nullable = false)
     private int points = 12;
+
+    @Column(name = "quarantine_end_date")
+    private LocalDate quarantineEndDate;
 
 }
