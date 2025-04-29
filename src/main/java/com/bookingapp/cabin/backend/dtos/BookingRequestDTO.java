@@ -15,5 +15,7 @@ public class BookingRequestDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private int guestCount;
+    private boolean businessTrip;
+
 
 }
