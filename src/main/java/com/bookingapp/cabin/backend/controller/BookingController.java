@@ -68,7 +68,7 @@ public class BookingController {
             String idToken = firebaseToken.replace("Bearer ", "");
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
-            Booking updatedBooking = bookingService.updateGuestCount(
+            Booking updatedBooking = bookingService.updateNumberOfGuests(
                     bookingId,
                     decodedToken.getUid(),
                     body.getNewGuestCount()
@@ -80,7 +80,6 @@ public class BookingController {
             return ResponseEntity.status(400).body("Kunne ikke oppdatere antall gjester: " + e.getMessage());
         }
     }
-
 
     //denne funker
     //Kansellerer min booking

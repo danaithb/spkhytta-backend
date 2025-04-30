@@ -172,7 +172,7 @@ public class BookingService {
         waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
     }
 
-    public Booking updateGuestCount(Long bookingId, String firebaseUid, int newGuestCount) {
+    public Booking updateNumberOfGuests(Long bookingId, String firebaseUid, int newNumberOfGuests) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
 
@@ -189,12 +189,11 @@ public class BookingService {
             throw new RuntimeException("Kan kun endre confirmed bookinger");
         }
 
-        booking.setNumberOfGuests(newGuestCount);
+        booking.setNumberOfGuests(newNumberOfGuests);
         Booking updated = bookingRepository.save(booking);
         bookingLogService.recordBookingLog(updated, "update_guests", firebaseUid);
         return updated;
     }
-
 
     //backup metoder nedenfor for å få en booking med engang uten loddtrekning
 
