@@ -123,6 +123,7 @@ public class BookingService {
         privateBooking.setPointsRequired(pointsCost);
         privateBooking.setPrice(price);
         privateBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
+        privateBooking.setTripType(TripType.PRIVATE);
 
         Booking saved = bookingRepository.save(privateBooking);
         bookingLogService.recordBookingLog(saved, "created", user.getFirebaseUid());
