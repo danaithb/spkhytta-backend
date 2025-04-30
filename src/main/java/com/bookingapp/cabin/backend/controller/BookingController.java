@@ -46,7 +46,7 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getGuestCount(),
+                    bookingRequest.getNumberOfGuests(),
                     bookingRequest.isBusinessTrip()
             );
 
@@ -127,7 +127,7 @@ public class BookingController {
                     bookingRequest.getCabinId(),
                     bookingRequest.getStartDate(),
                     bookingRequest.getEndDate(),
-                    bookingRequest.getGuestCount(),
+                    bookingRequest.getNumberOfGuests(),
                     bookingRequest.isBusinessTrip()
             );
 
