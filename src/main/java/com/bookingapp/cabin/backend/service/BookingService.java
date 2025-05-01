@@ -117,6 +117,10 @@ public class BookingService {
                 }
             }
 
+        //logging
+        logger.info("[DEBUG] Oppretter booking: tripType={}, cabinId={}, startDate={}, endDate={}, guests={}",
+                tripType, cabinId, startDate, endDate, numberOfGuests);
+
         Booking privateBooking = new Booking(user, cabin, startDate, endDate, "pending");
         privateBooking.setBookingCreatedDate(LocalDateTime.now());
         privateBooking.setNumberOfGuests(numberOfGuests);
