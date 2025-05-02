@@ -7,6 +7,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +18,7 @@ import java.io.InputStream;
 @Configuration
 public class FirebaseConfig {
 
-    private static final String GCP_PROJECT_ID = "test2-hyttebooker";
+    private static final String GCP_PROJECT_ID = "spkhytta"; // ← endret til ditt nye prosjekt-ID
     private static final String SECRET_ID = "firebase-admin-key";
 
     @Bean
@@ -26,11 +27,11 @@ public class FirebaseConfig {
             InputStream serviceAccount;
 
             if (System.getenv("GOOGLE_CLOUD_PROJECT") != null) {
-                // Kjører i GCP – bruk Secret Manager
+                // Cloud Run – hent JSON fra Secret Manager
                 String secretPayload = getSecret();
                 serviceAccount = new ByteArrayInputStream(secretPayload.getBytes());
             } else {
-                // Kjører lokalt – bruk lokal JSON-nøkkel
+                // Lokalt – last fra src/main/resources
                 serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json");
                 if (serviceAccount == null) {
                     throw new IOException("firebase-adminsdk.json not found in resources.");
@@ -43,6 +44,7 @@ public class FirebaseConfig {
 
             return FirebaseApp.initializeApp(options);
         }
+
         return FirebaseApp.getInstance();
     }
 
