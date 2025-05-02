@@ -1,0 +1,45 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # kan starte deploy manuelt fra GitHub UI
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
+
+      - name: Build and push Docker image
+        run: |
+          gcloud auth configure-docker
+          docker build --platform linux/amd64 -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/spkhytta .
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/spkhytta
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy hytteportalen \
+            --image=gcr.io/${{ secrets.GCP_PROJECT_ID }}/spkhytta \
+            --platform=managed \
+            --region=${{ secrets.GCP_REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars=DB_URL=$(gcloud secrets versions access latest --secret=DB_URL),\
+            DB_USER=$(gcloud secrets versions access latest --secret=DB_USER),\
+            DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)
