@@ -28,7 +28,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          gcloud auth configure-docker
+          gcloud auth configure-docker europe-west1-docker.pkg.dev
           docker build --platform linux/amd64 -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta .
           docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta
 
