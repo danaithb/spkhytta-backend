@@ -10,6 +10,7 @@ FROM openjdk:21-jdk-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-CMD echo "$FIREBASE_CONFIG" > /app/firebase-adminsdk.json && java -jar app.jar
+CMD ["java", "-jar", "app.jar"]
+
 
 
