@@ -234,7 +234,7 @@ public class BookingService {
         return true;
     }
 
-
+/*
     public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
         LocalDate today = LocalDate.now();
         if (startDate.isBefore(today) || endDate.isBefore(today)) {
@@ -318,6 +318,6 @@ public class BookingService {
         return savedBooking;
 
     }
-
+*/
 
 }

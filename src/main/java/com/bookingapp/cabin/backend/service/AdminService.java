@@ -1,12 +1,11 @@
 package com.bookingapp.cabin.backend.service;
 
+import com.bookingapp.cabin.backend.dtos.AdminBookingRequestDTO;
 import com.bookingapp.cabin.backend.model.Booking;
+import com.bookingapp.cabin.backend.model.Cabin;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.model.WaitlistEntry;
-import com.bookingapp.cabin.backend.repository.AdminRepository;
-import com.bookingapp.cabin.backend.repository.BookingRepository;
-import com.bookingapp.cabin.backend.repository.UserRepository;
-import com.bookingapp.cabin.backend.repository.WaitlistEntryRepository;
+import com.bookingapp.cabin.backend.repository.*;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,7 @@ public class AdminService {
     private final BookingLogService bookingLogService;
     private final WaitlistEntryRepository waitlistEntryRepository;
     private final BookingService bookingService;
-
+    private final CabinRepository cabinRepository;
 
     @Autowired
     public AdminService(
@@ -41,7 +40,8 @@ public class AdminService {
             PointsTransactionsService pointsTransactionsService,
             BookingLogService bookingLogService,
             WaitlistEntryRepository waitlistEntryRepository,
-            BookingService bookingService
+            BookingService bookingService,
+            CabinRepository cabinRepository
     ) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
@@ -51,6 +51,7 @@ public class AdminService {
         this.bookingLogService = bookingLogService;
         this.waitlistEntryRepository = waitlistEntryRepository;
         this.bookingService = bookingService;
+        this.cabinRepository = cabinRepository;
     }
 
     public List<Users> getAllUsers() {
@@ -70,6 +71,15 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
     }
 
+    public List<Cabin> getAllCabins() {
+        return cabinRepository.findAll();
+    }
+
+    public List<Booking> getBookingsInPeriod(LocalDate start, LocalDate end) {
+        return bookingRepository.findByStartDateGreaterThanEqualAndEndDateLessThanEqual(start, end);
+    }
+
+
     @Transactional
     public void deleteBooking(Long bookingId) {
         Booking booking = getBookingById(bookingId);
@@ -77,30 +87,30 @@ public class AdminService {
         adminRepository.delete(booking);
     }
 
-    public Booking editBooking(Long bookingId, String guestName, LocalDate startDate, LocalDate endDate, String status, BigDecimal price) {
+    public Booking editBooking(Long bookingId, AdminBookingRequestDTO request) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
 
-        if (guestName != null && !guestName.isEmpty()) {
+        if (request.getGuestName() != null && !request.getGuestName().isEmpty()) {
             Users user = booking.getUser();
-            user.setName(guestName);
+            user.setName(request.getGuestName());
             userRepository.save(user);
         }
 
-        if (startDate != null) {
-            booking.setStartDate(startDate);
+        if (request.getStartDate() != null) {
+            booking.setStartDate(request.getStartDate());
         }
 
-        if (endDate != null) {
-            booking.setEndDate(endDate);
+        if (request.getEndDate() != null) {
+            booking.setEndDate(request.getEndDate());
         }
 
-        if (status != null && !status.isEmpty()) {
-            booking.setStatus(status);
+        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+            booking.setStatus(request.getStatus());
         }
 
-        if (price != null) {
-            booking.setPrice(price);
+        if (request.getPrice() != null) {
+            booking.setPrice(request.getPrice());
         }
 
         Booking saved = bookingRepository.save(booking);
@@ -109,24 +119,25 @@ public class AdminService {
     }
 
     public Booking createBookingForUser(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
-        return bookingService.createAndConfirmBooking(userId, cabinId, startDate, endDate, numberOfGuests, businessTrip);
+        return bookingService.createBooking(userId, cabinId, startDate, endDate, numberOfGuests, businessTrip);
     }
 
     // Behandler bookinger for en hytte og velger en vinner via loddtrekning
-    public void processBookings(Long cabinId, LocalDate startDate, LocalDate endDate) {
+    public Booking processBookings(Long cabinId, LocalDate startDate, LocalDate endDate) {
         List<Booking> overlappingBookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 cabinId, "pending", endDate, startDate
         );
 
         if (overlappingBookings.isEmpty()) {
             logger.info("Ingen pending bookinger funnet for hytte " + cabinId);
-            return;
+            return null;
+
         }
 
         Booking selectedBooking = bookingLotteryService.conductLottery(overlappingBookings);
         if (selectedBooking == null) {
             logger.info("Ingen booking ble valgt i loddtrekningen for hytte {}", cabinId);
-            return;
+            return null;
         }
 
         Users user = selectedBooking.getUser();
@@ -135,7 +146,7 @@ public class AdminService {
             logger.info("Du har ikke nok poeng for å utøfre bookingen");
             selectedBooking.setStatus("rejected_insufficient_points");
             bookingRepository.save(selectedBooking);
-            return;
+            return null;
         }
 
         selectedBooking.setStatus("confirmed");
@@ -170,6 +181,8 @@ public class AdminService {
             }
         }
         logger.info("Ventelisten er oppdatert for hytte {}", cabinId);
+        return selectedBooking;
+
     }
 
 
