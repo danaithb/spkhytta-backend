@@ -40,8 +40,10 @@ jobs:
             --platform=managed \
             --region=${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
-            --set-env-vars=DB_URL=$(gcloud secrets versions access latest --secret=DB_URL),\
-          DB_USER=$(gcloud secrets versions access latest --secret=DB_USER),\
-          DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
-          --secret=GOOGLE_APPLICATION_CREDENTIALS=firebase-admin-key:latest
+            --set-env-vars=DB_URL=$(gcloud secrets versions access latest --secret=DB_URL),DB_USER=$(gcloud secrets versions access latest --secret=DB_USER),DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD) \
+            --set-secrets=GOOGLE_APPLICATION_CREDENTIALS=firebase-admin-key:latest
+      
+
+      
+
 
