@@ -26,10 +26,12 @@ public class FirebaseConfig {
         if (FirebaseApp.getApps().isEmpty()) {
             InputStream serviceAccount;
 
-            if (System.getenv("GOOGLE_CLOUD_PROJECT") != null) {
+            if (System.getenv("K_SERVICE") != null) {
                 // Cloud Run – hent JSON fra Secret Manager
                 String secretPayload = getSecret();
                 serviceAccount = new ByteArrayInputStream(secretPayload.getBytes());
+                //logg
+                System.out.println("Firebase init mode: " + (System.getenv("K_SERVICE") != null ? "GCP" : "LOCAL"));
             } else {
                 // Lokalt – last fra src/main/resources
                 serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-adminsdk.json");
