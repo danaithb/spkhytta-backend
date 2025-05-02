@@ -52,12 +52,8 @@ public class FirebaseConfig {
     }
 
     private String getSecret() throws IOException {
-        GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
-        SecretManagerServiceSettings settings = SecretManagerServiceSettings.newBuilder()
-                .setCredentialsProvider(() -> credentials)
-                .build();
-        try (SecretManagerServiceClient client = SecretManagerServiceClient.create(settings)) {
-
+        GoogleCredentials credentials = null; // Ikke nødvendig når vi bruker SecretManagerServiceClient.create() uten eksplisitt credentials
+        try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
             String secretName = String.format("projects/%s/secrets/%s/versions/latest", GCP_PROJECT_ID, SECRET_ID);
             AccessSecretVersionResponse response = client.accessSecretVersion(secretName);
             return response.getPayload().getData().toStringUtf8();
