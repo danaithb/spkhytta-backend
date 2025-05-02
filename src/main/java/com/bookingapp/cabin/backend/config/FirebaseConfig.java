@@ -3,6 +3,7 @@ package com.bookingapp.cabin.backend.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
+import com.google.cloud.secretmanager.v1.SecretManagerServiceSettings;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,12 @@ public class FirebaseConfig {
     }
 
     private String getSecret() throws IOException {
-        try (SecretManagerServiceClient client = SecretManagerServiceClient.create()) {
+        GoogleCredentials credentials = GoogleCredentials.getApplicationDefault();
+        SecretManagerServiceSettings settings = SecretManagerServiceSettings.newBuilder()
+                .setCredentialsProvider(() -> credentials)
+                .build();
+        try (SecretManagerServiceClient client = SecretManagerServiceClient.create(settings)) {
+
             String secretName = String.format("projects/%s/secrets/%s/versions/latest", GCP_PROJECT_ID, SECRET_ID);
             AccessSecretVersionResponse response = client.accessSecretVersion(secretName);
             return response.getPayload().getData().toStringUtf8();
