@@ -33,9 +33,9 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO users (name, email, firebase_uid)
-SELECT 'admin', 'Admin@admin.no', NULL
+SELECT 'admin', 'admin@admin.no', NULL
 WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'Admin@admin.no'
+    SELECT 1 FROM users WHERE email = 'admin@admin.no'
 );
 
 CREATE TABLE IF NOT EXISTS cabins (
