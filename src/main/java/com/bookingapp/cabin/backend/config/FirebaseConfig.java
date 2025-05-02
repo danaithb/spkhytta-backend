@@ -8,8 +8,7 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -24,23 +23,16 @@ public class FirebaseConfig {
 
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
-        String secretJson = getSecret(); // ✅ Riktig metodekall
+        String secretJson = getSecret(); // henter JSON som tekst
 
-        // Skriv JSON-innholdet til en midlertidig fil
-        Path tempFile = Files.createTempFile("firebase", ".json");
-        Files.write(tempFile, secretJson.getBytes());
+        // Konverter til InputStream direkte fra strengen
+        try (InputStream serviceAccount = new ByteArrayInputStream(secretJson.getBytes())) {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
 
-        // Pek miljøvariabelen til temp-filen
-        System.setProperty("GOOGLE_APPLICATION_CREDENTIALS", tempFile.toAbsolutePath().toString());
-
-        // Init Firebase med denne filen
-        FileInputStream serviceAccount = new FileInputStream(tempFile.toFile());
-
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                .build();
-
-        return FirebaseApp.initializeApp(options);
+            return FirebaseApp.initializeApp(options);
+        }
     }
 
     private String getSecret() throws IOException {
