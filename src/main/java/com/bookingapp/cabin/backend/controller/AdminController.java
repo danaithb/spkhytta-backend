@@ -2,6 +2,7 @@ package com.bookingapp.cabin.backend.controller;
 
 import com.bookingapp.cabin.backend.dtos.AdminCreateBookingDTO;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
+import com.bookingapp.cabin.backend.dtos.LotteryDatesRequestDTO;
 import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.service.AdminService;
 import com.bookingapp.cabin.backend.dtos.AdminBookingRequestDTO;
@@ -12,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+import java.time.LocalDate;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -25,6 +30,14 @@ public class AdminController {
     public AdminController(AdminService adminService, UserService userService) {
         this.adminService = adminService;
         this.userService = userService;
+    }
+
+    @GetMapping("/all-cabins")
+    public ResponseEntity<?> getAllCabins(@RequestHeader("Authorization") String firebaseToken) {
+        if (!isAdminEmail(firebaseToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        }
+        return ResponseEntity.ok(adminService.getAllCabins());
     }
 
     //denne funker
@@ -93,17 +106,11 @@ public class AdminController {
         }
 
         try {
-            Booking updatedBooking = adminService.editBooking(
-                    bookingId,
-                    request.getGuestName(),
-                    request.getStartDate(),
-                    request.getEndDate(),
-                    request.getStatus(),
-                    request.getPrice()
-            );
+            Booking updatedBooking = adminService.editBooking(bookingId, request);
             return ResponseEntity.ok(updatedBooking);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Feil ved oppdatering: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Feil ved oppdatering: " + e.getMessage());
         }
     }
 
@@ -134,6 +141,23 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/bookings-by-period")
+    public ResponseEntity<?> getBookingsByPeriod(
+            @RequestBody LotteryDatesRequestDTO dates,
+            @RequestHeader("Authorization") String firebaseToken) {
+
+        if (!isAdminEmail(firebaseToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        }
+
+        LocalDate start = dates.getStartDate();
+        LocalDate end = dates.getEndDate();
+
+        List<Booking> bookings = adminService.getBookingsInPeriod(start, end);
+        return ResponseEntity.ok(bookings);
+    }
+
+
     //denne funker
     //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
@@ -143,9 +167,14 @@ public class AdminController {
         }
 
         try {
-            adminService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
-            return ResponseEntity.ok("Bookinger prosessert for hytte " + cabinId);
-        } catch (Exception e) {
+            Booking winner = adminService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
+
+            if (winner == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ingen vinner ble valgt");
+            }
+            return ResponseEntity.ok(winner);
+
+        }catch (Exception e) {
             return ResponseEntity.status(500).body("Feil ved prosessering av bookinger: " + e.getMessage());
         }
     }
