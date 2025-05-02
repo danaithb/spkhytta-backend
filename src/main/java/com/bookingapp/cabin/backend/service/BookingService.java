@@ -76,11 +76,10 @@ public class BookingService {
         if (!available) {
             throw new RuntimeException("Hytta er opptatt i denne perioden");
         }
-
-        if (tripType == TripType.BUSINESS) {
-            Cabin cabin = cabinRepository.findById(cabinId)
+        Cabin cabin = cabinRepository.findById(cabinId)
                     .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
+        if (tripType == TripType.BUSINESS) {
             Booking businessBooking = new Booking(user, cabin, startDate, endDate, "confirmed");
             businessBooking.setTripType(tripType);
             businessBooking.setNumberOfGuests(numberOfGuests);
@@ -99,6 +98,13 @@ public class BookingService {
             throw new RuntimeException("Du er i karantene til " + quarantineEnd);
         }
 
+        Booking lastBooking = bookingRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(userId, "confirmed");
+        if (lastBooking != null) {
+            LocalDate requiredDate = lastBooking.getEndDate().plusDays(60);
+            if (startDate.isBefore(requiredDate)) {
+                throw new RuntimeException("Må vente 60 dager etter forrige booking pga karantenetid");
+            }
+        }
         int pointsCost = calculateBookingPoints(startDate, endDate);
         BigDecimal price = calculateBookingPrice(startDate, endDate);
 
@@ -106,18 +112,8 @@ public class BookingService {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
 
-        Cabin cabin = cabinRepository.findById(cabinId)
-                .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
-
-        Booking lastBooking = bookingRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(userId, "confirmed");
-        if (lastBooking != null) {
-                LocalDate requiredDate = lastBooking.getEndDate().plusDays(60);
-                if (startDate.isBefore(requiredDate)) {
-                    throw new RuntimeException("Må vente 60 dager etter forrige booking pga karantenetid");
-                }
-            }
-
         Booking privateBooking = new Booking(user, cabin, startDate, endDate, "pending");
+        privateBooking.setTripType(tripType);
         privateBooking.setBookingCreatedDate(LocalDateTime.now());
         privateBooking.setNumberOfGuests(numberOfGuests);
         privateBooking.setPointsRequired(pointsCost);
@@ -203,7 +199,7 @@ public class BookingService {
         );
         return overlappingBookings.isEmpty();
     }
-
+/*
     public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
         LocalDate today = LocalDate.now();
         if (startDate.isBefore(today) || endDate.isBefore(today)) {
@@ -287,6 +283,6 @@ public class BookingService {
         return savedBooking;
 
     }
-
+*/
 
 }
