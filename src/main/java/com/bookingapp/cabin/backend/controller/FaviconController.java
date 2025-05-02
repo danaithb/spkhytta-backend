@@ -8,6 +8,6 @@ public class FaviconController {
     @RequestMapping("favicon.ico")
     @ResponseBody
     void returnNoFavicon() {
-        // for gcp, returner 200 OK og ikk error
+        // For gcp, returner 200 OK og ikk error
     }
 }
