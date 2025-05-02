@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class CalendarService {
@@ -24,26 +21,32 @@ public class CalendarService {
 
     // Henter tilgjengelighet for en bestemt dato-periode for en hytte
     public List<DayAvailabilityDTO> getAvailabilityForDates(LocalDate startDate, LocalDate endDate, Long cabinId) {
-        // Henter bekreftede bookinger som overlapper med perioden
         List<Booking> bookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 cabinId, "confirmed", endDate, startDate
         );
 
-        // Samler opp alle datoer som er opptatt
-        Set<LocalDate> bookedDates = new HashSet<>();
+        Map<LocalDate, Integer> bookingCounts = new HashMap<>();
+
         for (Booking booking : bookings) {
-            LocalDate date = booking.getStartDate();
-            while (!date.isAfter(booking.getEndDate().minusDays(1))) {
-                bookedDates.add(date);
+            // Tell start- og sluttdatoer separat
+            LocalDate[] edgeDates = { booking.getStartDate(), booking.getEndDate() };
+            for (LocalDate d : edgeDates) {
+                bookingCounts.put(d, bookingCounts.getOrDefault(d, 0) + 1);
+            }
+
+            // Alle datoer mellom start+1 og end-1 = fullbooket
+            LocalDate date = booking.getStartDate().plusDays(1);
+            while (date.isBefore(booking.getEndDate())) {
+                bookingCounts.put(date, 2); // Marker som 100 % opptatt
                 date = date.plusDays(1);
             }
         }
 
-        // Lager oversikt over hver dag i perioden og status
         List<DayAvailabilityDTO> availabilityList = new ArrayList<>();
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
-            String status = bookedDates.contains(current) ? "booked" : "available";
+            int count = bookingCounts.getOrDefault(current, 0);
+            String status = count >= 2 ? "booked" : "available";
             availabilityList.add(new DayAvailabilityDTO(current, status));
             current = current.plusDays(1);
         }

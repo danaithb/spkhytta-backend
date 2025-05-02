@@ -17,7 +17,7 @@ import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class BookingService {
@@ -205,8 +205,35 @@ public class BookingService {
         List<Booking> overlappingBookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 cabinId, "confirmed", endDate, startDate
         );
-        return overlappingBookings.isEmpty();
+
+        // Samme logikk som i CalendarService
+        Map<LocalDate, Integer> bookingCounts = new HashMap<>();
+        for (Booking booking : overlappingBookings) {
+            LocalDate[] edgeDates = { booking.getStartDate(), booking.getEndDate() };
+            for (LocalDate d : edgeDates) {
+                bookingCounts.put(d, bookingCounts.getOrDefault(d, 0) + 1);
+            }
+
+            LocalDate date = booking.getStartDate().plusDays(1);
+            while (date.isBefore(booking.getEndDate())) {
+                bookingCounts.put(date, 2);
+                date = date.plusDays(1);
+            }
+        }
+
+        // Sjekk om noen av datoene i forespørselen er opptatt
+        LocalDate date = startDate;
+        while (!date.isAfter(endDate)) {
+            int count = bookingCounts.getOrDefault(date, 0);
+            if (count >= 2) {
+                return false;
+            }
+            date = date.plusDays(1);
+        }
+
+        return true;
     }
+
 
     public Booking createAndConfirmBooking(Long userId, Long cabinId, LocalDate startDate, LocalDate endDate, int numberOfGuests, Boolean businessTrip) {
         LocalDate today = LocalDate.now();
