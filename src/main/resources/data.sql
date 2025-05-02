@@ -20,6 +20,17 @@ WHERE NOT EXISTS (
     SELECT 1 FROM users WHERE email = 'annitesting@gmail.com'
 );
 
+INSERT INTO users (name, email, firebase_uid)
+SELECT 'Bella Belliosa', 'bella@gmail.no', NULL
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'bella@gmail.no'
+);
+
+INSERT INTO users (name, email, firebase_uid)
+SELECT 'Alfred Bolle', 'bolle@gmail.no', NULL
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'bolle@gmail.no'
+);
 
 INSERT INTO users (name, email, firebase_uid)
 SELECT 'admin', 'Admin@admin.no', NULL
