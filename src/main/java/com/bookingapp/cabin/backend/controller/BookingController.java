@@ -98,7 +98,7 @@ public class BookingController {
         }
     }
 
-    //denne funker
+    /*//denne funker
     @PostMapping("/instant-booking")
     public ResponseEntity<?> instantBooking(@RequestHeader("Authorization") String firebaseToken,
                                             @RequestBody BookingRequestDTO bookingRequest) {
@@ -135,7 +135,7 @@ public class BookingController {
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Kunne ikke utføre booking: " + e.getMessage());
         }
-    }
+    }*/
 
 
 }
