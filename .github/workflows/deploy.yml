@@ -4,35 +4,51 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Build and Deploy
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 21
+      - name: Set up Java 21
         uses: actions/setup-java@v3
         with:
-          java-version: '21'
           distribution: 'temurin'
+          java-version: '21'
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          project_id: spkhytta
-          service_account_email: spkhytta-sa@spkhytta.iam.gserviceaccount.com
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          export_environment_variables: true
 
-      - name: Build app with Maven
-        run: mvn clean package -DskipTests
+      - name: Write Firebase Admin SDK to file
+        run: |
+          mkdir -p src/main/resources
+          echo '${{ secrets.FIREBASE_ADMIN_SDK_JSON }}' > src/main/resources/firebase-adminsdk.json
+
+      - name: Build and push Docker image to Artifact Registry
+        run: |
+          gcloud auth configure-docker europe-west1-docker.pkg.dev
+          docker build --platform linux/amd64 -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta .
+          docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta
+
+      - name: Fetch DB secrets from Secret Manager
+        run: |
+          echo "DB_URL=$(gcloud secrets versions access latest --secret=DB_URL)" >> $GITHUB_ENV
+          echo "DB_USER=$(gcloud secrets versions access latest --secret=DB_USER)" >> $GITHUB_ENV
+          echo "DB_PASSWORD=$(gcloud secrets versions access latest --secret=DB_PASSWORD)" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v1
-        with:
-          service: hytteportalen
-          region: europe-west1
-          image: gcr.io/spkhytta/hytteportalen
+        run: |
+          gcloud run deploy hytteportalen \
+            --image=europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta \
+            --platform=managed \
+            --region=${{ secrets.GCP_REGION }} \
+            --allow-unauthenticated \
+            --add-cloudsql-instances=spkhytta:europe-west1:spkhytta-db \
+            --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }}
