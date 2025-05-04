@@ -5,20 +5,16 @@ import com.bookingapp.cabin.backend.repository.UserRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+//denne er clean
+@RequiredArgsConstructor
 @Service
 public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserRepository userRepository;
-
-    @Autowired
-    public AuthService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     public Users authenticateUser(String firebaseToken) {
         try {

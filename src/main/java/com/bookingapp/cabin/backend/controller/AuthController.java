@@ -5,36 +5,26 @@ import com.bookingapp.cabin.backend.globalException.BadRequestException;
 import com.bookingapp.cabin.backend.globalException.ResourceNotFoundException;
 import com.bookingapp.cabin.backend.model.Users;
 import com.bookingapp.cabin.backend.service.AuthService;
-import com.google.firebase.auth.FirebaseAuthException;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+//denne er clean nok
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
 
-    @Autowired
-    public AuthController(AuthService authService){
-        this.authService = authService;
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader("Authorization") String firebaseTokenHeader) {
         try {
-            logger.info("Bruker prøver å logge inn med Firebase-token...");
-
-            // Fjern "Bearer " fra headeren
             String firebaseToken = firebaseTokenHeader.replace("Bearer ", "");
-
             Users user = authService.authenticateUser(firebaseToken);
-
-            logger.info("Innlogging vellykket for bruker: {}", user.getFirebaseUid());
 
             AuthResponseDTO response = new AuthResponseDTO(
                     user.getUserId().intValue(),
@@ -42,7 +32,7 @@ public class AuthController {
                     user.getName(),
                     user.getEmail()
             );
-
+            logger.info("Innlogging vellykket for bruker: {}", user.getFirebaseUid());
             return ResponseEntity.ok(response);
 
         } catch (BadRequestException e) {

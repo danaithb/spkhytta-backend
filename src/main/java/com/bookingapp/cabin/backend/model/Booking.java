@@ -1,3 +1,5 @@
+//Source: https://github.com/jlwcrews2/simple-jpa/blob/main/src/main/java/no/jlwcrews/simplejpa/cat/Cat.javaimport jakarta.persistence.*;
+
 package com.bookingapp.cabin.backend.model;
 
 import jakarta.persistence.*;
@@ -22,7 +24,7 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "booking_id")
     private Long bookingId;
-///
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private Users user;
@@ -56,7 +58,6 @@ public class Booking {
     @Column(name = "number_of_guests", nullable = false)
     private int numberOfGuests;
 
-    //referansenummer for bookingen
     @Column(name = "booking_code", unique = true)
     private String bookingCode;
 
