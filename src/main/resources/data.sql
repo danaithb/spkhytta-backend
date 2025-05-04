@@ -92,7 +92,7 @@ FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
 FOREIGN KEY (cabin_id) REFERENCES cabins(cabin_id) ON DELETE CASCADE
 );
 
-CREATE TABLE waitlist_entries (
+CREATE TABLE IF NOT EXISTS waitlist_entries (
 booking_id BIGINT PRIMARY KEY,
 position INT NOT NULL,
 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
