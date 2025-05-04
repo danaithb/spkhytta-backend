@@ -13,16 +13,12 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // For API-ruter
-                registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000", "https://spkhytta.web.app")
-                        .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
-
-                // For admin-ruter
-                registry.addMapping("/admin/**")
-                        .allowedOrigins("http://localhost:3000", "https://spkhytta.web.app")
+                // Tillat både localhost og Firebase-hostede adminside
+                registry.addMapping("/**")
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "https://spkhytta.web.app"
+                        )
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
