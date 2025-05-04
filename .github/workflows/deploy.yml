@@ -31,15 +31,10 @@ jobs:
           mkdir -p src/main/resources
           echo '${{ secrets.FIREBASE_ADMIN_SDK_JSON }}' > src/main/resources/firebase-adminsdk.json
 
-      - name: Authenticate Docker with Artifact Registry
+      - name: Build and push Docker image to Artifact Registry
         run: |
           gcloud auth configure-docker europe-west1-docker.pkg.dev
-
-      - name: Build with Maven and Docker, then push
-        run: |
-          mvn clean package -DskipTests
-          cp target/*.jar app.jar
-          docker build -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta . 
+          docker build --platform linux/amd64 -t europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta .
           docker push europe-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/spkhytta/spkhytta
 
       - name: Fetch DB secrets from Secret Manager
@@ -55,6 +50,5 @@ jobs:
             --platform=managed \
             --region=${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
-            --service-account=spkhytta-sa@spkhytta.iam.gserviceaccount.com \
             --add-cloudsql-instances=spkhytta:europe-west1:spkhytta-db \
             --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }}
