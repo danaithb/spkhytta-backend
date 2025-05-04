@@ -1,5 +1,5 @@
 //Source: https://www.restack.io/p/spring-boot-answer-cors-permit-all
-/*package com.bookingapp.cabin.backend.config;
+package com.bookingapp.cabin.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +14,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://spkhytta.web.app")
+                        .allowedOrigins("https://spkhytta.web.app") // eksakt domenet
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
@@ -22,4 +22,3 @@ public class WebConfig {
         };
     }
 }
-*/
