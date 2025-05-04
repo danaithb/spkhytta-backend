@@ -51,5 +51,7 @@ jobs:
             --region=${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
             --add-cloudsql-instances=spkhytta:europe-west1:spkhytta-db \
-            --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }}
-      
+            --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }},GOOGLE_APPLICATION_CREDENTIALS=/app/src/main/resources/firebase-adminsdk.json
+
+          
+          
