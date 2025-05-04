@@ -13,12 +13,8 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Tillat både localhost og Firebase-hostede adminside
                 registry.addMapping("/**")
-                        .allowedOrigins(
-                                "http://localhost:3000",
-                                "https://spkhytta.web.app"
-                        )
+                        .allowedOriginPatterns("https://spkhytta.web.app")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
