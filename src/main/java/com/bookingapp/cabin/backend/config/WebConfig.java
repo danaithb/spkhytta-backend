@@ -14,7 +14,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("https://spkhytta.web.app")
+                        .allowedOrigins("https://spkhytta.web.app")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
