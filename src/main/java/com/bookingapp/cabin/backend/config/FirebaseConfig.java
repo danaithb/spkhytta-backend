@@ -1,4 +1,4 @@
-package com.bookingapp.cabin.backend.config;
+/*package com.bookingapp.cabin.backend.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.secretmanager.v1.AccessSecretVersionResponse;
@@ -43,8 +43,8 @@ public class FirebaseConfig {
         }
     }
 }
+*/
 
-/*
 package com.bookingapp.cabin.backend.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -76,4 +76,4 @@ public class FirebaseConfig {
         }
         return FirebaseApp.getInstance();
     }
-}*/
+}

@@ -7,30 +7,23 @@ import com.bookingapp.cabin.backend.repository.UserRepository;
 import com.bookingapp.cabin.backend.service.AuthService;
 import com.bookingapp.cabin.backend.service.BookingService;
 import com.bookingapp.cabin.backend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.bookingapp.cabin.backend.dtos.UserInfoDTO;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-
+//denne er clean
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
     private final AuthService authService;
     private final BookingService bookingService;
     private final UserRepository userRepository;
 
-    @Autowired
-    public UserController(UserService userService, AuthService authService, BookingService bookingService, UserRepository userRepository) {
-        this.userService = userService;
-        this.authService = authService;
-        this.bookingService = bookingService;
-        this.userRepository = userRepository;
-    }
 
     //denne funker
     @GetMapping("/my-bookings")
@@ -54,7 +47,6 @@ public class UserController {
     }
 
     //denne funker
-    //litt usikker på om vi skal bruke summary eller my-bookings
     @GetMapping("/me/bookings/summary")
     public ResponseEntity<List<BookingSummaryDTO>> getMyBookingSummaries(
             @RequestHeader("Authorization") String authorizationHeader) {

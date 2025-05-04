@@ -1,5 +1,6 @@
 package com.bookingapp.cabin.backend.controller;
 
+import com.bookingapp.cabin.backend.config.AdminValidator;
 import com.bookingapp.cabin.backend.dtos.AdminCreateBookingDTO;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import com.bookingapp.cabin.backend.dtos.LotteryDatesRequestDTO;
@@ -7,35 +8,36 @@ import com.bookingapp.cabin.backend.model.Booking;
 import com.bookingapp.cabin.backend.service.AdminService;
 import com.bookingapp.cabin.backend.dtos.AdminBookingRequestDTO;
 import com.bookingapp.cabin.backend.service.UserService;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
-import java.time.LocalDate;
-import java.util.Map;
+//denne er clean
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/admin")
 public class AdminController {
 
     private final AdminService adminService;
     private final UserService userService;
+    private final AdminValidator adminValidator;
 
-    @Autowired
-    public AdminController(AdminService adminService, UserService userService) {
-        this.adminService = adminService;
-        this.userService = userService;
+
+    private ResponseEntity<?> authorizeAdmin(String firebaseToken) {
+        if (!adminValidator.isAdminEmail(firebaseToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        }
+        return null;
     }
 
     @GetMapping("/all-cabins")
     public ResponseEntity<?> getAllCabins(@RequestHeader("Authorization") String firebaseToken) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null){
+            return auth;
         }
         return ResponseEntity.ok(adminService.getAllCabins());
     }
@@ -43,8 +45,9 @@ public class AdminController {
     //denne funker
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String firebaseToken) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
         return ResponseEntity.ok(adminService.getAllUsers());
     }
@@ -54,10 +57,10 @@ public class AdminController {
     @GetMapping("/{email}")
     public ResponseEntity<?> getUserByEmail(@RequestHeader("Authorization") String firebaseToken,
                                             @PathVariable String email) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
-        }
-
+            ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+            if (auth != null) {
+                return auth;
+            }
         return adminService.getUserByEmail(email)
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(404).body("Bruker ikke funnet"));
@@ -66,8 +69,9 @@ public class AdminController {
     //denne funker
     @GetMapping("/bookings")
     public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String firebaseToken) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
         return ResponseEntity.ok(adminService.getAllBookings());
     }
@@ -75,8 +79,9 @@ public class AdminController {
     //denne funker
     @GetMapping("/bookings/{id}")
     public ResponseEntity<?> getBooking(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
         return ResponseEntity.ok(adminService.getBookingById(id));
     }
@@ -86,8 +91,9 @@ public class AdminController {
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<?> deleteBooking(
             @RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
         adminService.deleteBooking(id);
         return ResponseEntity.ok("Booking slettet: " + id);
@@ -101,18 +107,14 @@ public class AdminController {
             @PathVariable Long bookingId,
             @RequestBody AdminBookingRequestDTO request) {
 
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
-
-        try {
-            Booking updatedBooking = adminService.editBooking(bookingId, request);
-            return ResponseEntity.ok(updatedBooking);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Feil ved oppdatering: " + e.getMessage());
-        }
+        Booking updatedBooking = adminService.editBooking(bookingId, request);
+        return ResponseEntity.ok(updatedBooking);
     }
+
 
     //lager bookinger for brukere
     @PostMapping("/bookings")
@@ -120,40 +122,27 @@ public class AdminController {
             @RequestHeader("Authorization") String firebaseToken,
             @RequestBody AdminCreateBookingDTO request) {
 
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
 
-        try {
-            Booking booking = adminService.createBookingForUser(
-                    request.getUserId(),
-                    request.getCabinId(),
-                    request.getStartDate(),
-                    request.getEndDate(),
-                    request.getNumberOfGuests(),
-                    request.getBusinessTrip()
-            );
-            return ResponseEntity.ok(booking);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Feil ved opprettelse: " + e.getMessage());
-        }
+        Booking booking = adminService.createBookingForUser(request);
+        return ResponseEntity.ok(booking);
     }
+
 
     @PostMapping("/bookings-by-period")
     public ResponseEntity<?> getBookingsByPeriod(
             @RequestBody LotteryDatesRequestDTO dates,
             @RequestHeader("Authorization") String firebaseToken) {
 
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
 
-        LocalDate start = dates.getStartDate();
-        LocalDate end = dates.getEndDate();
-
-        List<Booking> bookings = adminService.getBookingsInPeriod(start, end);
+        List<Booking> bookings = adminService.getBookingsInPeriod(dates);
         return ResponseEntity.ok(bookings);
     }
 
@@ -162,32 +151,16 @@ public class AdminController {
     //prossess for å booke en spesifik hytte
     @PostMapping("/process/{cabinId}")
     public ResponseEntity<?> processBookings(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long cabinId, @RequestBody BookingRequestDTO bookingRequest) {
-        if (!isAdminEmail(firebaseToken)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
+        ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
+        if (auth != null) {
+            return auth;
         }
 
-        try {
-            Booking winner = adminService.processBookings(cabinId, bookingRequest.getStartDate(), bookingRequest.getEndDate());
-
-            if (winner == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ingen vinner ble valgt");
-            }
-            return ResponseEntity.ok(winner);
-
-        }catch (Exception e) {
-            return ResponseEntity.status(500).body("Feil ved prosessering av bookinger: " + e.getMessage());
+        List<Booking> winners = adminService.processBookings(cabinId, bookingRequest);
+        if (winners.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
-    }
-
-    private boolean isAdminEmail(String firebaseToken) {
-        try {
-            String idToken = firebaseToken.replace("Bearer ", "");
-            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-            String email = decodedToken.getEmail();
-            return email != null && email.equals("admin@admin.no");
-        } catch (Exception e) {
-            return false;
-        }
+        return ResponseEntity.ok(winners);
 
     }
 

@@ -1,3 +1,4 @@
+//Source: https://www.restack.io/p/spring-boot-answer-cors-permit-all
 package com.bookingapp.cabin.backend.config;
 
 import org.springframework.context.annotation.Bean;
