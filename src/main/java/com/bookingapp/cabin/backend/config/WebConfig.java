@@ -1,4 +1,4 @@
-package com.bookingapp.cabin.backend.config;
+/*package com.bookingapp.cabin.backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,4 +22,4 @@ public class WebConfig {
         };
     }
 }
-//test
+*/
