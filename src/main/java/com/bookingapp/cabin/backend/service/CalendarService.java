@@ -11,8 +11,8 @@ import java.time.YearMonth;
 import java.util.*;
 
 //Denne er clean
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class CalendarService {
 
     private final BookingRepository bookingRepository;
@@ -26,28 +26,31 @@ public class CalendarService {
         List<Booking> bookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 cabinId, "confirmed", endDate, startDate
         );
-        Set<LocalDate> edgeDates = new HashSet<>();
-        Set<LocalDate> fullyBookedDates = new HashSet<>();
+
+        // Kartlegg hvor mange bookinger som gjelder hver dato
+        Map<LocalDate, Integer> bookingCounts = new HashMap<>();
 
         for (Booking booking : bookings) {
-            edgeDates.add(booking.getStartDate());
-            edgeDates.add(booking.getEndDate());
+            // Teller start og slutt separat
+            bookingCounts.put(booking.getStartDate(), bookingCounts.getOrDefault(booking.getStartDate(), 0) + 1);
+            bookingCounts.put(booking.getEndDate(), bookingCounts.getOrDefault(booking.getEndDate(), 0) + 1);
 
+            // Alle datoer mellom start+1 og end-1 er fullbooket
             LocalDate date = booking.getStartDate().plusDays(1);
             while (date.isBefore(booking.getEndDate())) {
-                fullyBookedDates.add(date);
+                bookingCounts.put(date, 2); // 2 betyr fullbooket
                 date = date.plusDays(1);
             }
         }
 
-
         List<DayAvailabilityDTO> availabilityList = new ArrayList<>();
         LocalDate current = startDate;
         while (!current.isAfter(endDate)) {
+            int count = bookingCounts.getOrDefault(current, 0);
             String status;
-            if (fullyBookedDates.contains(current)) {
+            if (count >= 2) {
                 status = "booked";
-            } else if (edgeDates.contains(current)) {
+            } else if (count == 1) {
                 status = "edge-booked";
             } else {
                 status = "available";
