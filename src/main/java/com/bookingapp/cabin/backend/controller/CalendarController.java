@@ -16,7 +16,7 @@ public class CalendarController {
 
     private final CalendarService calendarService;
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/availability")
     public ResponseEntity<List<DayAvailabilityDTO>> getAvailabilityForMonth(
             @RequestBody CalendarRequestDTO calendarRequest
