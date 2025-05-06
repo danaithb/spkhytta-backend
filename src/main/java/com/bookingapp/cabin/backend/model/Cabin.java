@@ -18,14 +18,14 @@ public class Cabin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cabin_id")
-    private Long cabinId;
+    private Integer cabinId;
 
 
     @Column(name = "cabin_name")
     private String cabinName;
 
 
-    public Cabin(Long cabinId) {
+    public Cabin(Integer cabinId) {
         this.cabinId = cabinId;
     }
 
