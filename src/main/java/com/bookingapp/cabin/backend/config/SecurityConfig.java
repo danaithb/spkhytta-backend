@@ -21,9 +21,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // kun login åpen
+                        .requestMatchers("/api/admin/**").authenticated() // admin = krever token
+                        .anyRequest().authenticated() // alt annet også = krever login
                 );
-
         return http.build();
     }
 
