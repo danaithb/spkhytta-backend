@@ -57,11 +57,17 @@ public class AdminService {
         return cabinRepository.findAll();
     }
 
-    public List<Booking> getBookingsInPeriod(LotteryDatesRequestDTO request) {
+    /*public List<Booking> getBookingsInPeriod(LotteryDatesRequestDTO request) {
         return bookingRepository.findByStartDateGreaterThanEqualAndEndDateLessThanEqual(
                 request.getStartDate(), request.getEndDate()
         );
+    }*/
+    public List<Booking> getBookingsInPeriod(LotteryDatesRequestDTO request) {
+        return bookingRepository.findByStatusIgnoreCaseAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                "pending", request.getEndDate(), request.getStartDate()
+        );
     }
+
 
 
     @Transactional
