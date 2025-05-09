@@ -22,5 +22,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUser_FirebaseUidOrderByStartDateDesc(String firebaseUid);
     Optional<Booking> findByBookingCode(String bookingCode);
     List<Booking> findByStartDateGreaterThanEqualAndEndDateLessThanEqual(LocalDate startDate, LocalDate endDate);
+    List<Booking> findByStatusIgnoreCaseAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            String status, LocalDate endDate, LocalDate startDate
+    );
 
 }
