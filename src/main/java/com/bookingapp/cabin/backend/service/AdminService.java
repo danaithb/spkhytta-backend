@@ -4,7 +4,10 @@ import com.bookingapp.cabin.backend.dtos.AdminBookingRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AdminCreateBookingDTO;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import com.bookingapp.cabin.backend.dtos.LotteryDatesRequestDTO;
-import com.bookingapp.cabin.backend.model.*;
+import com.bookingapp.cabin.backend.model.Booking;
+import com.bookingapp.cabin.backend.model.Cabin;
+import com.bookingapp.cabin.backend.model.Users;
+import com.bookingapp.cabin.backend.model.WaitlistEntry;
 import com.bookingapp.cabin.backend.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 //Denne er clean, men siste metode kan deles opp
 @RequiredArgsConstructor
 @Service
@@ -89,45 +93,20 @@ public class AdminService {
             }
         }
 
-        String previousStatus = booking.getStatus();
-
-        if ("confirmed".equalsIgnoreCase(request.getStatus())
-                && booking.getTripType() == TripType.PRIVATE
-                && "pending".equalsIgnoreCase(previousStatus)) {
-            handlePrivateBookingConfirmation(booking);
-        }
-
         if (request.getGuestName() != null && !request.getGuestName().isEmpty()) {
             booking.getUser().setName(request.getGuestName());
             userRepository.save(booking.getUser());
         }
 
-        if (request.getStartDate() != null) { booking.setStartDate(request.getStartDate()); }
-        if (request.getEndDate() != null) { booking.setEndDate(request.getEndDate()); }
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-            booking.setStatus(request.getStatus());
-        }
-        if (request.getPrice() != null) { booking.setPrice(request.getPrice()); }
+        if (request.getStartDate() != null) { booking.setStartDate(request.getStartDate());}
+        if (request.getEndDate() != null) { booking.setEndDate(request.getEndDate());}
+        if (request.getStatus() != null && !request.getStatus().isEmpty()) { booking.setStatus(request.getStatus());}
+        if (request.getPrice() != null) { booking.setPrice(request.getPrice());}
 
         Booking saved = bookingRepository.save(booking);
         bookingLogService.recordBookingLog(saved, "edited", "admin@admin.no");
         logger.info("Booking {} ble redigert av admin.", saved.getBookingId());
         return saved;
-    }
-
-    private void handlePrivateBookingConfirmation(Booking booking) {
-        Users user = booking.getUser();
-        int cost = booking.getPointsRequired();
-
-        if (user.getPoints() < cost) {
-            throw new RuntimeException("Brukeren har ikke nok poeng");
-        }
-
-        user.setPoints(user.getPoints() - cost);
-        userRepository.save(user);
-
-        pointsTransactionsService.recordPointsTransaction(user, -cost, "admin_confirm_private_booking");
-        bookingLogService.recordBookingLog(booking, "confirmed_private_by_admin", "admin@admin.no");
     }
 
     public Booking createBookingForUser(AdminCreateBookingDTO request) {
@@ -213,41 +192,41 @@ public class AdminService {
             if (selectedBooking == null) {
                 continue;
             }
-                Users user = selectedBooking.getUser();
-                int cost = selectedBooking.getPointsRequired();
+            Users user = selectedBooking.getUser();
+            int cost = selectedBooking.getPointsRequired();
 
-                if (user.getPoints() < cost) {
-                    logger.info("Du har ikke nok poeng for å utøfre bookingen");
-                    selectedBooking.setStatus("rejected_insufficient_points");
-                    bookingRepository.save(selectedBooking);
-                    continue;
+            if (user.getPoints() < cost) {
+                logger.info("Du har ikke nok poeng for å utøfre bookingen");
+                selectedBooking.setStatus("rejected_insufficient_points");
+                bookingRepository.save(selectedBooking);
+                continue;
+            }
+
+
+            selectedBooking.setStatus("confirmed");
+            user.setPoints(user.getPoints() - cost);
+            userRepository.save(user);
+            pointsTransactionsService.recordPointsTransaction(user, -cost, "booking_lottery");
+            bookingLogService.recordBookingLog(selectedBooking, "confirmed_lottery", "admin@admin.no");
+            winners.add(selectedBooking);
+            user.setQuarantineEndDate(selectedBooking.getEndDate().plusDays(60));
+            userRepository.save(user);
+
+            int queuePosition = 1;
+            for (Booking other : group) {
+                if (!other.getBookingId().equals(selectedBooking.getBookingId())) {
+                    other.setStatus("waitlist");
+                    bookingRepository.save(other);
+                    bookingLogService.recordBookingLog(other, "waitlisted", "admin@admin.no");
+
+                    WaitlistEntry entry = new WaitlistEntry();
+                    entry.setBooking(other);
+                    entry.setPosition(queuePosition++);
+                    entry.setCreatedAt(LocalDateTime.now());
+                    waitlistEntryRepository.save(entry);
+
                 }
-
-
-                selectedBooking.setStatus("confirmed");
-                user.setPoints(user.getPoints() - cost);
-                userRepository.save(user);
-                pointsTransactionsService.recordPointsTransaction(user, -cost, "booking_lottery");
-                bookingLogService.recordBookingLog(selectedBooking, "confirmed_lottery", "admin@admin.no");
-                winners.add(selectedBooking);
-                user.setQuarantineEndDate(selectedBooking.getEndDate().plusDays(60));
-                userRepository.save(user);
-
-                int queuePosition = 1;
-                for (Booking other : group) {
-                    if (!other.getBookingId().equals(selectedBooking.getBookingId())) {
-                        other.setStatus("waitlist");
-                        bookingRepository.save(other);
-                        bookingLogService.recordBookingLog(other, "waitlisted", "admin@admin.no");
-
-                        WaitlistEntry entry = new WaitlistEntry();
-                        entry.setBooking(other);
-                        entry.setPosition(queuePosition++);
-                        entry.setCreatedAt(LocalDateTime.now());
-                        waitlistEntryRepository.save(entry);
-
-                    }
-                }
+            }
             logger.info("Booking ID {} vant loddtrekningen!", selectedBooking.getBookingId());
         }
 
