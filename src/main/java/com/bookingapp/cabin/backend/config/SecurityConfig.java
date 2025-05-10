@@ -1,4 +1,4 @@
-/*package com.bookingapp.cabin.backend.config;
+package com.bookingapp.cabin.backend.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -41,4 +41,4 @@ public class SecurityConfig {
             }
         };
     }
-}*/
+}
