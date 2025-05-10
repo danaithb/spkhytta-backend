@@ -50,7 +50,5 @@ jobs:
             --platform=managed \
             --region=${{ secrets.GCP_REGION }} \
             --allow-unauthenticated \
-            --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }} \
-            --add-cloudsql-instances=spkhytta:europe-west1:spkhytta-db
-    
-      
+            --add-cloudsql-instances=spkhytta:europe-west1:spkhytta-db \
+            --set-env-vars=DB_URL=${{ env.DB_URL }},DB_USER=${{ env.DB_USER }},DB_PASSWORD=${{ env.DB_PASSWORD }}
