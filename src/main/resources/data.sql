@@ -55,8 +55,8 @@ WHERE NOT EXISTS (
 
 CREATE TABLE IF NOT EXISTS bookings (
 booking_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-user_id INT NOT NULL,
-cabin_id INT NOT NULL,
+user_id BIGINT NOT NULL,
+cabin_id BIGINT NOT NULL,
 start_date DATE NOT NULL,
 end_date DATE NOT NULL,
 status VARCHAR(50) NOT NULL DEFAULT 'pending',
@@ -80,7 +80,7 @@ FOREIGN KEY (booking_id) REFERENCES bookings(booking_id)
 
 CREATE TABLE IF NOT EXISTS points_transactions (
 points_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-user_id INT NOT NULL,
+user_id BIGINT NOT NULL,
 points_change INT NOT NULL,
 type VARCHAR(50) NOT NULL,
 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
