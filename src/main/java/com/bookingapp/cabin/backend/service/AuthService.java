@@ -25,8 +25,12 @@ public class AuthService {
             logger.info("Firebase UID: {}", firebaseUid);
             logger.info("Bruker-email: {}", email);
 
+            logger.info("Prøver å finne bruker med e-post: {}", email);
             Users user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
+                    .orElseThrow(() -> {
+                        logger.error("Fant ikke bruker med e-post: {}", email);
+                        return new RuntimeException("Bruker ikke funnet");
+                    });
 
             if (user.getFirebaseUid() == null || user.getFirebaseUid().isBlank()) {
                 logger.info("Setter Firebase UID for {}", email);
