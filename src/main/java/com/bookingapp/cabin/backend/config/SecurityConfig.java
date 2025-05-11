@@ -34,7 +34,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://spkhytta.web.app")
+                        .allowedOriginPatterns("https://spkhytta.web.app")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
