@@ -4,10 +4,7 @@ import com.bookingapp.cabin.backend.dtos.AdminBookingRequestDTO;
 import com.bookingapp.cabin.backend.dtos.AdminCreateBookingDTO;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 import com.bookingapp.cabin.backend.dtos.LotteryDatesRequestDTO;
-import com.bookingapp.cabin.backend.model.Booking;
-import com.bookingapp.cabin.backend.model.Cabin;
-import com.bookingapp.cabin.backend.model.Users;
-import com.bookingapp.cabin.backend.model.WaitlistEntry;
+import com.bookingapp.cabin.backend.model.*;
 import com.bookingapp.cabin.backend.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -93,20 +90,45 @@ public class AdminService {
             }
         }
 
+        String previousStatus = booking.getStatus();
+
+        if ("confirmed".equalsIgnoreCase(request.getStatus())
+                && booking.getTripType() == TripType.PRIVATE
+                && "pending".equalsIgnoreCase(previousStatus)) {
+            handlePrivateBookingConfirmation(booking);
+        }
+
         if (request.getGuestName() != null && !request.getGuestName().isEmpty()) {
             booking.getUser().setName(request.getGuestName());
             userRepository.save(booking.getUser());
         }
 
-        if (request.getStartDate() != null) { booking.setStartDate(request.getStartDate());}
-        if (request.getEndDate() != null) { booking.setEndDate(request.getEndDate());}
-        if (request.getStatus() != null && !request.getStatus().isEmpty()) { booking.setStatus(request.getStatus());}
-        if (request.getPrice() != null) { booking.setPrice(request.getPrice());}
+        if (request.getStartDate() != null) { booking.setStartDate(request.getStartDate()); }
+        if (request.getEndDate() != null) { booking.setEndDate(request.getEndDate()); }
+        if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+            booking.setStatus(request.getStatus());
+        }
+        if (request.getPrice() != null) { booking.setPrice(request.getPrice()); }
 
         Booking saved = bookingRepository.save(booking);
         bookingLogService.recordBookingLog(saved, "edited", "admin@admin.no");
         logger.info("Booking {} ble redigert av admin.", saved.getBookingId());
         return saved;
+    }
+
+    private void handlePrivateBookingConfirmation(Booking booking) {
+        Users user = booking.getUser();
+        int cost = booking.getPointsRequired();
+
+        if (user.getPoints() < cost) {
+            throw new RuntimeException("Brukeren har ikke nok poeng");
+        }
+
+        user.setPoints(user.getPoints() - cost);
+        userRepository.save(user);
+
+        pointsTransactionsService.recordPointsTransaction(user, -cost, "admin_confirm_private_booking");
+        bookingLogService.recordBookingLog(booking, "confirmed_private_by_admin", "admin@admin.no");
     }
 
     public Booking createBookingForUser(AdminCreateBookingDTO request) {
