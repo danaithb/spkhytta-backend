@@ -127,6 +127,10 @@ public class AdminService {
         user.setPoints(user.getPoints() - cost);
         userRepository.save(user);
 
+        // Sett karantene til 60 dager etter sluttdato for privat booking
+        user.setQuarantineEndDate(booking.getEndDate().plusDays(60));
+        userRepository.save(user); // Lagre oppdateringen i databasen
+
         pointsTransactionsService.recordPointsTransaction(user, -cost, "admin_confirm_private_booking");
         bookingLogService.recordBookingLog(booking, "confirmed_private_by_admin", "admin@admin.no");
     }
