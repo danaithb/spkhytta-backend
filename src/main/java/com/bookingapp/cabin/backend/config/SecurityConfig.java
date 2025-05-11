@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/favicon.ico").permitAll()
                         .requestMatchers("/").permitAll() // tillat root-ruten uten autentisering
                         .requestMatchers("/api/admin/**").authenticated() // admin = krever token
                         .anyRequest().authenticated() // alt annet også = krever login
