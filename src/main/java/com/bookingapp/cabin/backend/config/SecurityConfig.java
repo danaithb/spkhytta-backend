@@ -21,10 +21,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/favicon.ico").permitAll()
-                        .requestMatchers("/").permitAll() // tillat root-ruten uten autentisering
-                        .requestMatchers("/api/admin/**").authenticated() // admin = krever token
-                        .anyRequest().authenticated() // alt annet også = krever login
+                        .anyRequest().permitAll()
                 );
         return http.build();
     }
@@ -35,10 +32,9 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("https://spkhytta.web.app", "http://localhost:*") // legg til localhost
+                        .allowedOrigins("*")
                         .allowedMethods("*")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowedHeaders("*");
             }
         };
     }
