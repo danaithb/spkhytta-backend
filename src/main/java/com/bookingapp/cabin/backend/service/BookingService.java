@@ -98,10 +98,6 @@ public class BookingService {
         privateBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
         privateBooking.setTripType(TripType.PRIVATE);
 
-        // Oppdater karantene etter privat booking
-        user.setQuarantineEndDate(endDate.plusDays(60)); // karantene til 60 dager etter sluttdato
-        userRepository.save(user);
-
         Booking saved = bookingRepository.save(privateBooking);
         bookingLogService.recordBookingLog(saved, "created", user.getFirebaseUid());
         return saved;
