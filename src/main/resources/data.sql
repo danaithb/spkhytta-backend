@@ -33,6 +33,12 @@ WHERE NOT EXISTS (
 );
 
 INSERT INTO users (name, email, firebase_uid)
+SELECT 'Janne Karlsen', 'janne.k@spk.no', NULL
+WHERE NOT EXISTS (
+    SELECT 1 FROM users WHERE email = 'janne.k@spk.no'
+);
+
+INSERT INTO users (name, email, firebase_uid)
 SELECT 'admin', 'admin@admin.no', NULL
 WHERE NOT EXISTS (
     SELECT 1 FROM users WHERE email = 'admin@admin.no'
