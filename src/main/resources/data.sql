@@ -9,27 +9,27 @@ quarantine_end_date DATE DEFAULT NULL
 
 
 INSERT INTO users (name, email, firebase_uid)
-SELECT 'testuser4', 'testing4@test.no', NULL
+SELECT 'Ola Nordman', 'ola.nordmann@spk.no', NULL
 WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'testing4@test.no'
+    SELECT 1 FROM users WHERE email = 'ola.nordmann@spk.no'
 );
 
 INSERT INTO users (name, email, firebase_uid)
-SELECT 'anni', 'annitesting@gmail.com', NULL
+SELECT 'Kari Einarsson', 'kari.einarsson@spk.no', NULL
 WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'annitesting@gmail.com'
+    SELECT 1 FROM users WHERE email = 'kari.einarsson@spk.no'
 );
 
 INSERT INTO users (name, email, firebase_uid)
-SELECT 'Bella Belliosa', 'bella@gmail.no', NULL
+SELECT 'Hussein Ali', 'hussain.ali@spk.no', NULL
 WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'bella@gmail.no'
+    SELECT 1 FROM users WHERE email = 'hussain.ali@spk.no'
 );
 
 INSERT INTO users (name, email, firebase_uid)
-SELECT 'Alfred Bolle', 'bolle@gmail.no', NULL
+SELECT 'Maria Sanchez', 'maria.sanchez@spk.no', NULL
 WHERE NOT EXISTS (
-    SELECT 1 FROM users WHERE email = 'bolle@gmail.no'
+    SELECT 1 FROM users WHERE email = 'maria.sanchez@spk.no'
 );
 
 INSERT INTO users (name, email, firebase_uid)
