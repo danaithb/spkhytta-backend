@@ -51,6 +51,10 @@ public class BookingService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
 
+        if (user.getQuarantineEndDate() != null && user.getQuarantineEndDate().isAfter(today) && !businessTrip) {
+            throw new RuntimeException("Du kan ikke booke privat under karantene. Karantene slutter: " + user.getQuarantineEndDate());
+        }
+
         TripType tripType = Boolean.TRUE.equals(businessTrip)
                 ? TripType.BUSINESS
                 : TripType.PRIVATE;
@@ -77,14 +81,8 @@ public class BookingService {
             return savedBusinessBooking;
         }
 
-        LocalDate quarantineEnd = user.getQuarantineEndDate();
-        if (quarantineEnd != null && quarantineEnd.isAfter(today)) {
-            throw new RuntimeException("Du er i karantene til " + quarantineEnd);
-        }
-
+        // håndtere privat booking
         int pointsCost = calculateBookingPoints(startDate, endDate);
-        BigDecimal price = calculateBookingPrice(startDate, endDate);
-
         if (user.getPoints() < pointsCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
         }
@@ -92,22 +90,11 @@ public class BookingService {
         Cabin cabin = cabinRepository.findById(cabinId)
                 .orElseThrow(() -> new RuntimeException("Hytte ikke funnet"));
 
-        Booking lastBooking = bookingRepository.findTopByUser_UserIdAndStatusOrderByEndDateDesc(userId, "confirmed");
-        if (lastBooking != null) {
-            LocalDate requiredDate = lastBooking.getEndDate().plusDays(60);
-            if (startDate.isBefore(requiredDate)) {
-                throw new RuntimeException("Må vente 60 dager etter forrige booking pga karantenetid");
-            }
-        }
-
-        logger.info("[DEBUG] Oppretter booking: tripType={}, cabinId={}, startDate={}, endDate={}, guests={}",
-                tripType, cabinId, startDate, endDate, numberOfGuests);
-
         Booking privateBooking = new Booking(user, cabin, startDate, endDate, "pending");
         privateBooking.setBookingCreatedDate(LocalDateTime.now());
         privateBooking.setNumberOfGuests(numberOfGuests);
         privateBooking.setPointsRequired(pointsCost);
-        privateBooking.setPrice(price);
+        privateBooking.setPrice(calculateBookingPrice(startDate, endDate));
         privateBooking.setBookingCode("BOOKING-" + System.currentTimeMillis());
         privateBooking.setTripType(TripType.PRIVATE);
 
