@@ -8,10 +8,11 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import org.springframework.transaction.annotation.Transactional;
 
-//denne er clean
+
 @RequiredArgsConstructor
 @Service
 public class BookingLogService {
+//logger handlinger knyttet til bookinger
 
     private final BookingLogRepository bookingLogRepository;
 

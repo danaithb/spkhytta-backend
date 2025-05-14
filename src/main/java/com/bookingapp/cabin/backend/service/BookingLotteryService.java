@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Random;
 
-//denne er clean
+//håndterer loddtrekning blant overlappende bookinger
+
 @RequiredArgsConstructor
 @Service
 public class BookingLotteryService {

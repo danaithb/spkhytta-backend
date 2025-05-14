@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 
-//kanskje legge til userId her
 public class BookingRequestDTO {
     private Long cabinId;
     private LocalDate startDate;

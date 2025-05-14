@@ -10,6 +10,6 @@ public class FaviconController {
     @RequestMapping("favicon.ico")
     @ResponseBody
     void returnNoFavicon() {
-        // Returner bare 200 OK uten innhold
+        //Returner bare 200 OK uten innhold
     }
 }

@@ -18,3 +18,7 @@ public class UserInfoDTO {
     private LocalDate quarantineEndDate;
 
 }
+
+
+
+

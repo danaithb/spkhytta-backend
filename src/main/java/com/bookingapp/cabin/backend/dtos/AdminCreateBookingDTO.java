@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+//DTO brukt av admin for å opprette en booking på vegne av en bruker
 
 @AllArgsConstructor
 @NoArgsConstructor

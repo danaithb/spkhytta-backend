@@ -4,6 +4,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import org.springframework.stereotype.Component;
 
+
+// Verifiserer tokenet med Firebase og henter e-post og sjekker om e-posten er lik admin-adressen
+
 @Component
 public class AdminValidator {
 

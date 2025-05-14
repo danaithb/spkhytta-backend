@@ -11,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.security.config.Customizer;
 
+// Konfigurerer sikkerhet og CORS for API-et, og legger til Firebase-filter for autentisering
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

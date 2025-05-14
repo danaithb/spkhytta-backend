@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-//denne er clean
+
 
 @CrossOrigin(origins = "https://spkhytta.web.app")
 @RestController
@@ -25,7 +25,7 @@ public class AdminController {
     private final UserService userService;
     private final AdminValidator adminValidator;
 
-
+    //Sjekker om brukeren er admin før tilgang gis
     private ResponseEntity<?> authorizeAdmin(String firebaseToken) {
         if (!adminValidator.isAdminEmail(firebaseToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Kun admin har tilgang");
@@ -33,6 +33,7 @@ public class AdminController {
         return null;
     }
 
+    //Henter alle hytter – kun for admin
     @GetMapping("/all-cabins")
     public ResponseEntity<?> getAllCabins(@RequestHeader("Authorization") String firebaseToken) {
         ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
@@ -42,7 +43,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllCabins());
     }
 
-    //denne funker
+    //Henter én bruker basert på e-post – kun for admin
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers(@RequestHeader("Authorization") String firebaseToken) {
         ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
@@ -52,8 +53,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
-    //denne funker
-    // Hent en bruker basert på email – kun tilgjengelig for admin
+    //Hent en bruker basert på email – kun tilgjengelig for admin
     @GetMapping("/{email}")
     public ResponseEntity<?> getUserByEmail(@RequestHeader("Authorization") String firebaseToken,
                                             @PathVariable String email) {
@@ -66,7 +66,6 @@ public class AdminController {
                 .orElseGet(() -> ResponseEntity.status(404).body("Bruker ikke funnet"));
     }
 
-    //denne funker
     @GetMapping("/bookings")
     public ResponseEntity<?> getAllBookings(@RequestHeader("Authorization") String firebaseToken) {
         ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
@@ -76,7 +75,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getAllBookings());
     }
 
-    //denne funker
+
     @GetMapping("/bookings/{id}")
     public ResponseEntity<?> getBooking(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
         ResponseEntity<?> auth = authorizeAdmin(firebaseToken);
@@ -87,7 +86,6 @@ public class AdminController {
     }
 
 
-    //denne funker
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<?> deleteBooking(
             @RequestHeader("Authorization") String firebaseToken, @PathVariable Long id) {
@@ -99,8 +97,7 @@ public class AdminController {
         return ResponseEntity.ok("Booking slettet: " + id);
     }
 
-    //denne må fikses, denne koden skal være i service, mens controller skal bare vise infoen
-    //denne funker
+    //Redigerer en eksisterende booking
     @PutMapping("/edit-booking/{bookingId}")
     public ResponseEntity<?> editBooking(
             @RequestHeader("Authorization") String firebaseToken,
@@ -116,7 +113,7 @@ public class AdminController {
     }
 
 
-    //lager bookinger for brukere
+    //Oppretter en ny booking på vegne av en bruker
     @PostMapping("/bookings")
     public ResponseEntity<?> createBookingForUser(
             @RequestHeader("Authorization") String firebaseToken,
@@ -147,8 +144,8 @@ public class AdminController {
     }
 
 
-    //denne funker
-    //prossess for å booke en spesifik hytte
+
+    //Kjører loddtrekning
     @PostMapping("/process/{cabinId}")
     public ResponseEntity<?> processBookings(@RequestHeader("Authorization") String firebaseToken, @PathVariable Long cabinId, @RequestBody BookingRequestDTO bookingRequest) {
         ResponseEntity<?> auth = authorizeAdmin(firebaseToken);

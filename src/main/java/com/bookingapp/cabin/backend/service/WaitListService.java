@@ -10,12 +10,12 @@ import org.slf4j.LoggerFactory;
 @RequiredArgsConstructor
 @Service
 
-//denne er clean
+//oppdaterer venteliste etter kansellering eller loddtrekning
 public class WaitListService {
     private static final Logger logger = LoggerFactory.getLogger(WaitListService.class);
     private BookingRepository bookingRepository;
 
-    //oppdaterer ventelisten etter loddtrekning
+    //Bekrefter neste booking i ventelisten og oppdaterer rekkefølgen
     public void promoteFromWaitlist(Long cabinId) {
         List<Booking> waitlistBookings = bookingRepository.findByCabin_CabinIdAndStatusOrderByQueuePositionAsc(
                 cabinId, "waitlist"

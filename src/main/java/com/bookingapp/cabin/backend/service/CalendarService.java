@@ -27,15 +27,15 @@ public class CalendarService {
                 cabinId, "confirmed", endDate, startDate
         );
 
-        // Kartlegg hvor mange bookinger som gjelder hver dato
+        //Kartlegger hvor mange bookinger som gjelder for hver dato
         Map<LocalDate, Integer> bookingCounts = new HashMap<>();
 
         for (Booking booking : bookings) {
-            // Teller start og slutt separat
+            //Teller start og slutt separat
             bookingCounts.put(booking.getStartDate(), bookingCounts.getOrDefault(booking.getStartDate(), 0) + 1);
             bookingCounts.put(booking.getEndDate(), bookingCounts.getOrDefault(booking.getEndDate(), 0) + 1);
 
-            // Alle datoer mellom start+1 og end-1 er fullbooket
+            //Alle datoer mellom start+1 og end-1 er fullbooket
             LocalDate date = booking.getStartDate().plusDays(1);
             while (date.isBefore(booking.getEndDate())) {
                 bookingCounts.put(date, 2); // 2 betyr fullbooket

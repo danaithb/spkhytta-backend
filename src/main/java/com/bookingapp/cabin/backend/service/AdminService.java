@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-//Denne er clean, men siste metode kan deles opp
+
 @RequiredArgsConstructor
 @Service
 public class AdminService {
@@ -54,17 +54,12 @@ public class AdminService {
         return cabinRepository.findAll();
     }
 
-    /*public List<Booking> getBookingsInPeriod(LotteryDatesRequestDTO request) {
-        return bookingRepository.findByStartDateGreaterThanEqualAndEndDateLessThanEqual(
-                request.getStartDate(), request.getEndDate()
-        );
-    }*/
+    // Henter alle "pending"-bookinger i en gitt periode
     public List<Booking> getBookingsInPeriod(LotteryDatesRequestDTO request) {
         return bookingRepository.findByStatusIgnoreCaseAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 "pending", request.getEndDate(), request.getStartDate()
         );
     }
-
 
 
     @Transactional
@@ -75,6 +70,7 @@ public class AdminService {
         logger.info("Booking {} slettet av admin.", bookingId);
     }
 
+    // Redigerer en booking og håndterer poeng/karantene hvis den blir bekreftet
     @Transactional
     public Booking editBooking(Long bookingId, AdminBookingRequestDTO request) {
         Booking booking = getBookingById(bookingId);
@@ -116,6 +112,7 @@ public class AdminService {
         return saved;
     }
 
+    // Hjelpemetode: behandler poengtrekk og karantene for privatbooking ved bekreftelse
     private void handlePrivateBookingConfirmation(Booking booking) {
         Users user = booking.getUser();
         int cost = booking.getPointsRequired();
@@ -146,6 +143,7 @@ public class AdminService {
         );
     }
 
+    // Hjelpemetode: filtrerer ut ikke-overlappende bookinger
     private List<Booking> findNonConflictingBookings(List<Booking> allBookings) {
         List<Booking> result = new ArrayList<>();
         for (Booking candidate : allBookings) {
@@ -164,8 +162,8 @@ public class AdminService {
         logger.info("Fant {} konfliktsfrie bookinger", result.size());
         return result;
     }
-    //DENNE MÅ DELES OPP I FLERE METODER
-    // Behandler bookinger for en hytte og velger en vinner via loddtrekning
+
+    // Behandler alle pending-bookinger for en hytte, bekrefter uten konflikt og kjører loddtrekning ellers
     public List<Booking> processBookings(Long cabinId, BookingRequestDTO request) {
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();

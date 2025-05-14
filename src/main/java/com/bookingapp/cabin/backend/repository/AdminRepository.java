@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+//Repository for admin-relatert tilgang til bookinger
 
 @Repository
 public interface AdminRepository extends JpaRepository<Booking, Long> {

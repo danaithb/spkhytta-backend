@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PointsTransactionsService {
 
-    //denne er clean
+// Tjeneste som lagrer transaksjoner knyttet til poengbruk og -endringer
     private final PointsTransactionRepository pointsTransactionRepository;
 
     public void recordPointsTransaction(Users user, int pointsChange, String transactionType) {

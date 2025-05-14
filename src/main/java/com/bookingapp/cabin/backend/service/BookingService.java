@@ -29,7 +29,6 @@ public class BookingService {
     private final BookingLogService bookingLogService;
     private final PointsTransactionsService pointsTransactionsService;
 
-    //skal vi ha denne????
     //Henter bruker-id fra Firebase uid
     public Long getUserIdByFirebaseUid(String firebaseUid) {
         return userRepository.findByFirebaseUid(firebaseUid)
@@ -81,7 +80,7 @@ public class BookingService {
             return savedBusinessBooking;
         }
 
-        // håndtere privat booking
+        //håndterer privat booking
         int pointsCost = calculateBookingPoints(startDate, endDate);
         if (user.getPoints() < pointsCost) {
             throw new RuntimeException("Ikke nok poeng tilgjengelig for booking");
@@ -103,18 +102,20 @@ public class BookingService {
         return saved;
     }
 
+    //Beregner poengkostnad for privat booking basert på antall dager
     private int calculateBookingPoints(LocalDate startDate, LocalDate endDate) {
         int days = (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
         return days * 3;
     }
 
+    //Beregner pris for privat booking
     private BigDecimal calculateBookingPrice(LocalDate startDate, LocalDate endDate) {
         int days = (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
         return BigDecimal.valueOf(days * 500.0).setScale(2, RoundingMode.HALF_UP);
     }
 
 
-    //Kansellerer en booking og hånterer ventelisten
+    //Kansellerer en booking, hånterer ventelisten og refunderer poeng
     public void cancelMyBooking(Long bookingId, String firebaseUid) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
@@ -145,6 +146,7 @@ public class BookingService {
         waitListService.promoteFromWaitlist(booking.getCabin().getCabinId());
     }
 
+    //Oppdaterer antall gjester for en booking
     public Booking updateNumberOfGuests(Long bookingId, String firebaseUid, int newNumberOfGuests) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking ikke funnet"));
@@ -168,6 +170,7 @@ public class BookingService {
         return updated;
     }
 
+    // Sjekker om hytta er ledig i gitt periode, basert på bookingregler og logikk for opptatte datoer
     public boolean isCabinAvailable(Long cabinId, LocalDate startDate, LocalDate endDate) {
         List<Booking> overlappingBookings = bookingRepository.findByCabin_CabinIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 cabinId, "confirmed", endDate, startDate

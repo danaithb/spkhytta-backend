@@ -11,6 +11,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+//Entitet som representerer en booking av en hytte, inkludert datoer, status og tilhørende bruker
 
 @Entity
 @AllArgsConstructor

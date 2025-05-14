@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.List;
-//denne er clean
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -20,6 +20,7 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final WaitListService waitListService;
 
+    //Returnerer informasjon om innlogget bruker
     public UserInfoDTO getMyInfo(String firebaseUid) {
         Users user = userRepository.findByFirebaseUid(firebaseUid)
                 .orElseThrow(() -> new RuntimeException("Bruker ikke funnet"));
@@ -31,6 +32,8 @@ public class UserService {
                 user.getQuarantineEndDate()
         );
     }
+
+    //Returnerer sammendrag av brukerens bookinger
     public List<BookingSummaryDTO> getMyBookingSummaries(String firebaseUid) {
         List<Booking> bookings = bookingRepository.findByUser_FirebaseUidOrderByStartDateDesc(firebaseUid);
 
@@ -44,7 +47,7 @@ public class UserService {
         )).toList();
     }
 
-
+    //Returnerer alle detaljerte bookinger for brukeren
     public List<Booking> getBookingsForUser(String firebaseUid) {
         return bookingRepository.findByUser_FirebaseUidOrderByStartDateDesc(firebaseUid);
     }

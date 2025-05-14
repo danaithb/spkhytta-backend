@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.bookingapp.cabin.backend.dtos.BookingRequestDTO;
 
-
-//tenker at denne også er clean nok
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
@@ -23,8 +21,7 @@ public class BookingController {
     private final BookingService bookingService;
     private final AuthService authService;
 
-    //denne funker
-    //oppretter en booking
+    //oppretter en ny booking
     @PostMapping
     public ResponseEntity<?> createBooking(@RequestHeader("Authorization") String firebaseToken,
                                            @RequestBody BookingRequestDTO bookingRequest) {
@@ -52,8 +49,7 @@ public class BookingController {
         }
     }
 
-    //denne funker
-    //legge til metode for å endre en booking
+    //Oppdaterer antall gjester for en eksisterende booking
     @PutMapping("/update-guests/{bookingId}")
     public ResponseEntity<?> updateGuestCount(@RequestHeader("Authorization") String firebaseToken,
                                               @PathVariable Long bookingId,
@@ -74,8 +70,8 @@ public class BookingController {
         }
     }
 
-    //denne funker
-    //Kansellerer min booking
+
+    //Kansellerer egen booking
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<?> cancelOwnBooking(@RequestHeader("Authorization") String authorizationHeader,
                                               @PathVariable Long bookingId) {

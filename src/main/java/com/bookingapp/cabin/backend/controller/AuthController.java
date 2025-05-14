@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-//denne er clean nok
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -20,6 +19,7 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
 
+    //Autentiserer brukeren basert på Firebase-token og returnerer brukerinfo
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestHeader("Authorization") String firebaseTokenHeader) {
         try {

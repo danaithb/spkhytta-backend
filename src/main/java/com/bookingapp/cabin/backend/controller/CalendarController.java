@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-//denne er clean
 @RestController
 @RequestMapping("/api/calendar")
 @RequiredArgsConstructor
+//Returnerer tilgjengelige og opptatte dager for valgt måned og hytte
 public class CalendarController {
 
     private final CalendarService calendarService;
