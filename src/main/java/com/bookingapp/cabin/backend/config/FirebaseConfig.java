@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 // Henter Firebase-nøkkelen fra Google Secret Manager i stedet for å lagre den som en fil
-//source:https://stackoverflow.com/questions/44185432/firebase-admin-sdk-with-java/47247539#47247539
+//kilde:https://stackoverflow.com/questions/44185432/firebase-admin-sdk-with-java/47247539#47247539
 
 @Configuration
 public class FirebaseConfig {

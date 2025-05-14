@@ -1,5 +1,3 @@
-//Source:https://github.com/bogdanmarculescu/microservices2024/blob/main/recorder/src/main/java/org/cards/recorder/model/RoundRecordRepository.java
-
 package com.bookingapp.cabin.backend.repository;
 
 import com.bookingapp.cabin.backend.model.Users;

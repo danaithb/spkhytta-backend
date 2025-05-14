@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-
+//kilde controller klasser: https://github.com/bogdanmarculescu/microservices2024/blob/main/recorder/src/main/java/org/cards/recorder/controller/RecorderController.java
 
 @CrossOrigin(origins = "https://spkhytta.web.app")
 @RestController

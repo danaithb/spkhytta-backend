@@ -1,5 +1,5 @@
-//Source:https://github.com/bogdanmarculescu/microservices2024/blob/main/ongoing/src/main/java/org/cards/ongoinground/dtos/RoundDTO.java
-//Source: https://www.baeldung.com/java-dto-pattern
+//kilde dto klasser:https://github.com/bogdanmarculescu/microservices2024/blob/main/ongoing/src/main/java/org/cards/ongoinground/dtos/RoundDTO.java
+//kilde dto klasser: https://www.baeldung.com/java-dto-pattern
 
 package com.bookingapp.cabin.backend.dtos;
 

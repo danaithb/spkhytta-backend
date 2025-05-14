@@ -1,4 +1,4 @@
-//Source:https://github.com/jlwcrews2/simple-jpa/blob/main/src/main/java/no/jlwcrews/simplejpa/cat/Cat.java
+//kilde:https://github.com/jlwcrews2/simple-jpa/blob/main/src/main/java/no/jlwcrews/simplejpa/cat/Cat.java
 package com.bookingapp.cabin.backend.model;
 
 import jakarta.persistence.*;
