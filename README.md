@@ -56,10 +56,10 @@ Using Maven:
 
 ## Authentication
 
-- The backend expects an ID token from Firebase in the `Authorization` header.
+- The backend expects an ID token from Firebase in the `Authorization` header
 - Example: Authorization: Bearer <firebase_id_token>
-- Only users registered in the database can log in (SSO planned).
-- Admins must be manually created in the database 
+- Only users registered in the database and firebase auth can log in (SSO planned)
+- Admin too must be manually created in the database 
 
 ## Deployment
 
