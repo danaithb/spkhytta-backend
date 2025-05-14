@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/")  //Setter base-path til rotnivå
 public class HelloController {
 
-    @GetMapping  //Når du besøker http://localhost:8080/
+    @GetMapping
     public String helloWorld() {
         return "Hello world!";
     }
